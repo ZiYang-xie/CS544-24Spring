@@ -27,12 +27,13 @@ class LinearRegression:
         return grad[0]
     
     def run(self, method='CG', init_guess=None):
+        
         if init_guess is None:
             init_guess = np.random.randn(self.A.shape[0],1)
-            
-        result= minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-2,
+        
+        result= minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-1,
                             options={
-                                'gtol': 1e-2,
+                                'gtol': 1e-1,
                                 'disp': True,
                                 'maxiter': self.A.shape[0]+5,
                                 'return_all': True})
@@ -44,11 +45,20 @@ if __name__ == '__main__':
     # x: (N, 2)
     # y: (N, 1)
     # alpha: (N, 1)
-    x, y, w = generate_linear_regression_dataset(N=5)
+    x, y, w = generate_linear_regression_dataset(N=2000)
     lr = LinearRegression(A=np.dot(x, x.T), b=y)
-    def func(self, x):
-        w = self.self.alpha
-    alpha = lr.run('CG')
+    print(f"------------CG------------")
+    import time
+    cg_start = time.time()
+    alpha = lr.run('CG', init_guess=np.random.randn(x.shape[0],1))
+    cg_end = time.time()
+    # print(f"alpha: {alpha}")
     w_hat = np.dot(x.T, alpha)
-    print(f"Estimated weights: {w_hat}, True weights: {w}")
-    lr.run('BFGS')
+    
+    print(f"time:{cg_end-cg_start}, Estimated weights: {w_hat}, True weights: {w}")
+    print(f"------------BFGS------------")
+    bfgs_start = time.time()
+    alpha = lr.run('BFGS')
+    bfgs_end = time.time()
+    w_hat = np.dot(x.T, alpha)
+    print(f"time:{bfgs_end-bfgs_start}, Estimated weights: {w_hat}, True weights: {w}")

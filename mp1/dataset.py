@@ -2,8 +2,8 @@ import numpy as np
 
 def generate_linear_regression_dataset(N):
     w = np.random.randn(1,2)
-    x = np.random.randn(2, 100)
-    y = np.dot(w, x)#  + np.random.randn(1, 100) * 0.01
+    x = np.random.randn(2, N)
+    y = np.dot(w, x) + np.random.randn(1, N) * 0.01
 
     # linear regression
     w_hat, residuals, rank, s = np.linalg.lstsq(x.T, y.T, rcond=None)
