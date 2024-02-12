@@ -80,14 +80,18 @@ class MLP_fitter:
     def run(self, method='CG'):
         params_dict = self.model.state_dict()
         init_params = np.concatenate([params_dict[key].detach().numpy().flatten() for key in params_dict.keys()])
+        print("Optimize variable size:", init_params.shape[0])
+        print(f"Init loss: {self.func(init_params)}")
 
-        result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-5,
+        print(f"------------{method}------------")
+        result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-3,
                                         options={
-                                            'gtol': 1e-5,
+                                            'gtol': 1e-3,
                                             'disp': True,
                                             'maxiter': 1000,
                                             'return_all': True
                                         })
+        print(f"Final loss: {self.func(result.x)}")
         return result.x
 
 def linear_regression(method='CG'):
@@ -106,14 +110,18 @@ if __name__ == '__main__':
     alpha = lr.run(method, init_guess=np.random.randn(x.shape[0],1))
     end = time()
     w_hat = np.dot(x.T, alpha)
-    print(f"time:{end-start}, Estimated weights: {w_hat}, True weights: {w}")
-
+    print(f"Time Usage: {end-start}, Estimated weights: {w_hat}, True weights: {w}")
 
 def mlp_fitting(method='CG'):
-    tgt_func = lambda x: np.sin(x) + np.cos(x)
+    tgt_func = lambda x: x**3 - 2*x**2 + 3*x - 1
     X, Y = generate_fitting_dataset(N=5000, func=tgt_func)
     mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1)
+    
+    print("\n"+"="*40)
+    start = time()
     param = mlp.run(method)
+    end = time()
+    print(f"Time Usage: {end-start}")
 
     # Test the model
     state_dict = {}
@@ -126,6 +134,7 @@ def mlp_fitting(method='CG'):
     test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
     print(f"x: {test_X.shape}")
     visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
+    print("="*40 + "\n")
 
 def visulize(model, tgt_func, x):
     plt.figure()
@@ -140,6 +149,7 @@ def visulize(model, tgt_func, x):
 if __name__ == '__main__':
     # linear_regression()
     mlp_fitting('CG')
+    mlp_fitting('BFGS')
 
 
     
