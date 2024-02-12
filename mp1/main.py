@@ -10,7 +10,7 @@ from time import time
 from opt import minimize_with_restart
 from dataset import generate_linear_regression_dataset, generate_fitting_dataset
 from utils import plot_func2D
-import matplotlib.pyplot as plt
+
 
 class LinearRegression:
     def __init__(self, 
@@ -30,7 +30,7 @@ class LinearRegression:
     
     def run(self, method='CG', init_guess=None):
         if init_guess is None:
-            init_guess = np.random.randn(self.A.shape[0])
+            init_guess = np.random.randn(self.A.shape[0],1)
         
         result = minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-1,
                                 options={
@@ -96,13 +96,6 @@ class MLP_fitter:
 
 def linear_regression(method='CG'):
     x, y, w = generate_linear_regression_dataset(N=2000)
-        # plot_func2D(self.func, result['allvecs'], f'{method}.png')
-
-if __name__ == '__main__':
-    # x: (N, 2)
-    # y: (N, 1)
-    # alpha: (N, 1)
-    x, y, w = generate_linear_regression_dataset(N=2000, dim=10)
     lr = LinearRegression(A=np.dot(x, x.T), b=y)
     
     print(f"------------{method}------------")
@@ -131,20 +124,8 @@ def mlp_fitting(method='CG'):
     mlp.model.load_state_dict(state_dict)
     error = F.mse_loss(mlp.model(mlp.X), mlp.Y).item()
     print(f"MSE Error: {error}")
-    test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
-    print(f"x: {test_X.shape}")
-    visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
     print("="*40 + "\n")
 
-def visulize(model, tgt_func, x):
-    plt.figure()
-    x = x.to(torch.float32)
-    plt.plot(x, tgt_func(x), label='True function')
-    x = x.to(torch.float32)
-    model.eval()
-    plt.plot(x, model(x).detach().cpu().numpy(), label='Fitted function')
-    plt.legend()
-    plt.savefig('./visualize/output.png')
 
 if __name__ == '__main__':
     # linear_regression()
