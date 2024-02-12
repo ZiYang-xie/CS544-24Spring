@@ -1,8 +1,8 @@
 import numpy as np
 
-def generate_linear_regression_dataset(N):
-    w = np.random.randn(1,2)
-    x = np.random.randn(2, N)
+def generate_linear_regression_dataset(N, dim=2):
+    w = np.random.randn(1,dim)
+    x = np.random.randn(dim, N)
     y = np.dot(w, x) + np.random.randn(1, N) * 0.01
 
     # linear regression
