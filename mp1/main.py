@@ -86,7 +86,7 @@ class MLP_fitter:
         print(f"------------{method}------------")
         result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-3,
                                         options={
-                                            'gtol': 1e-2,
+                                            'gtol': 1e-3,
                                             'disp': True,
                                             'maxiter': 1000,
                                             'return_all': True

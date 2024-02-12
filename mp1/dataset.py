@@ -13,6 +13,6 @@ def generate_linear_regression_dataset(N, dim=2):
 
 
 def generate_fitting_dataset(N, func):
-    x = np.random.randn(N, 1)
+    x = np.random.uniform(-1, 1, N)[..., None]
     y = func(x) #+ np.random.randn(1, N) * 0.01
     return x, y
