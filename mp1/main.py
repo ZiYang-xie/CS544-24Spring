@@ -15,31 +15,40 @@ class LinearRegression:
         self.b = b
     
     def func(self, x):
-        obj_func = 0.5 * x.T @ self.A @ x + self.b.T @ x
-        print(f"obj_func: {obj_func}")
+        obj_func = 0.5 * np.dot(x.T, self.A).dot(x) - np.dot(self.b.T, x)
+        # 0.5 * x.T @ self.A @ x - self.b.T @ x
+        
+        # print(f"obj_func: {obj_func}")
         return obj_func[0]
     
     def grad(self, x):
-        grad = self.A @ x + self.b.T
-        print(f"grad: {grad.shape}")
-        return grad
+        grad = self.A @ x - self.b.T
+        
+        return grad[0]
     
     def run(self, method='CG', init_guess=None):
         if init_guess is None:
             init_guess = np.random.randn(self.A.shape[0],1)
             
-        result= minimize_with_restart(self.func, init_guess, method=method, jac=None, tol=1e-2,
+        result= minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-2,
                             options={
                                 'gtol': 1e-2,
                                 'disp': True,
-                                'maxiter': 5,
+                                'maxiter': self.A.shape[0]+5,
                                 'return_all': True})
         
-        plot_func2D(self.func, result['allvecs'], f'{method}.png')
+        return result['allvecs'][-1]
+        # plot_func2D(self.func, result['allvecs'], f'{method}.png')
 
 if __name__ == '__main__':
-    x, y, w = generate_linear_regression_dataset(N=100)
-    import pdb; pdb.set_trace()
+    # x: (N, 2)
+    # y: (N, 1)
+    # alpha: (N, 1)
+    x, y, w = generate_linear_regression_dataset(N=5)
     lr = LinearRegression(A=np.dot(x, x.T), b=y)
-    lr.run('CG')
+    def func(self, x):
+        w = self.self.alpha
+    alpha = lr.run('CG')
+    w_hat = np.dot(x.T, alpha)
+    print(f"Estimated weights: {w_hat}, True weights: {w}")
     lr.run('BFGS')

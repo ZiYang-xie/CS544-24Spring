@@ -12,7 +12,7 @@ def plot_func2D(function, path=None, output_path='output.png'):
     Y = np.array([[function(np.array([x0[i, j], x1[i, j]])) for j in range(x0.shape[1])] for i in range(x0.shape[0])])
 
     # Creating subplots
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6)) # https://snip.mathpix.com/1390852413/notes/e66752a4-ca81-4c0e-8e33-395d3630c881/edit
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6)) 
 
     # 3D plot
     ax0 = fig.add_subplot(121, projection='3d')

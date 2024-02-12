@@ -12,6 +12,7 @@ def minimize_with_restart(function, initial_guess, method='CG', jac=None, tol=1e
         return_data.append(result)
         if result.success:
             break
+        # print(f"result.x:{result.x.shape}")
         initial_guess = result.x
     final_results = return_data[-1]
     all_vects = []
