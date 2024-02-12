@@ -1,3 +1,4 @@
+import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -37,3 +38,14 @@ def plot_func2D(function, path=None, output_path='output.png'):
     fig.colorbar(contour, ax=ax[1], orientation='vertical')
 
     plt.savefig(os.path.join('./visualize', output_path))
+
+
+def visulize(model, tgt_func, x):
+    plt.figure()
+    x = x.to(torch.float32)
+    plt.plot(x, tgt_func(x), label='True function')
+    x = x.to(torch.float32)
+    model.eval()
+    plt.plot(x, model(x).detach().cpu().numpy(), label='Fitted function')
+    plt.legend()
+    plt.savefig('./visualize/output.png')

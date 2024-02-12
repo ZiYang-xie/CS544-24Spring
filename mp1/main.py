@@ -9,7 +9,7 @@ from time import time
 
 from opt import minimize_with_restart
 from dataset import generate_linear_regression_dataset, generate_fitting_dataset
-from utils import plot_func2D
+from utils import plot_func2D, visulize
 
 
 class LinearRegression:
@@ -124,6 +124,10 @@ def mlp_fitting(method='CG'):
     mlp.model.load_state_dict(state_dict)
     error = F.mse_loss(mlp.model(mlp.X), mlp.Y).item()
     print(f"MSE Error: {error}")
+    test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
+    print(f"x: {test_X.shape}")
+    visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
+    print("="*40 + "\n")
     print("="*40 + "\n")
 
 
