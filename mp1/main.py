@@ -1,11 +1,16 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 import scipy as sp
 import numpy as np
 import numpy.linalg as la
+from time import time
 
 from opt import minimize_with_restart
-from dataset import generate_linear_regression_dataset
+from dataset import generate_linear_regression_dataset, generate_fitting_dataset
 from utils import plot_func2D
-
+import matplotlib.pyplot as plt
 
 class LinearRegression:
     def __init__(self, 
@@ -16,9 +21,6 @@ class LinearRegression:
     
     def func(self, x):
         obj_func = 0.5 * np.dot(x.T, self.A).dot(x) - np.dot(self.b.T, x)
-        # 0.5 * x.T @ self.A @ x - self.b.T @ x
-        
-        # print(f"obj_func: {obj_func}")
         return obj_func[0]
     
     def grad(self, x):
@@ -27,18 +29,69 @@ class LinearRegression:
         return grad[0]
     
     def run(self, method='CG', init_guess=None):
-        
         if init_guess is None:
             init_guess = np.random.randn(self.A.shape[0])
         
-        result= minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-1,
-                            options={
-                                'gtol': 1e-1,
-                                'disp': True,
-                                'maxiter': self.A.shape[0]+5,
-                                'return_all': True})
-        
+        result = minimize_with_restart(self.func, init_guess, method=method, jac=self.grad, tol=1e-1,
+                                options={
+                                    'gtol': 1e-1,
+                                    'disp': True,
+                                    'maxiter': self.A.shape[0]+5,
+                                    'return_all': True
+                                })
         return result['allvecs'][-1]
+    
+class MLP_fitter:
+    def __init__(self, X, Y, input_dim, hidden_dim, output_dim=1) -> None:
+        self.X = torch.tensor(X, dtype=torch.float32)
+        self.Y = torch.tensor(Y, dtype=torch.float32)
+        self.model = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim)
+        )
+
+    def func(self, params):
+        # Update model weights
+        state_dict = {}
+        for key in self.model.state_dict().keys():
+            state_dict[key] = torch.tensor(params[:self.model.state_dict()[key].numel()]).reshape(self.model.state_dict()[key].shape)
+            params = params[self.model.state_dict()[key].numel():]
+        self.model.load_state_dict(state_dict)
+
+        # Compute loss
+        mse_loss = F.mse_loss(self.model(self.X), self.Y)
+        return mse_loss.item()
+    
+    def grad(self, params):        
+        state_dict = {}
+        for key in self.model.state_dict().keys():
+            state_dict[key] = torch.tensor(params[:self.model.state_dict()[key].numel()]).reshape(self.model.state_dict()[key].shape)
+            params = params[self.model.state_dict()[key].numel():]
+        self.model.load_state_dict(state_dict)
+
+        # Compute loss
+        mse_loss = F.mse_loss(self.model(self.X), self.Y)
+
+        grad = torch.autograd.grad(mse_loss, self.model.parameters(), create_graph=True)
+        grad = torch.cat([g.flatten() for g in grad])
+        return grad.detach().numpy()
+    
+    def run(self, method='CG'):
+        params_dict = self.model.state_dict()
+        init_params = np.concatenate([params_dict[key].detach().numpy().flatten() for key in params_dict.keys()])
+
+        result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-5,
+                                        options={
+                                            'gtol': 1e-5,
+                                            'disp': True,
+                                            'maxiter': 1000,
+                                            'return_all': True
+                                        })
+        return result.x
+
+def linear_regression(method='CG'):
+    x, y, w = generate_linear_regression_dataset(N=2000)
         # plot_func2D(self.func, result['allvecs'], f'{method}.png')
 
 if __name__ == '__main__':
@@ -47,18 +100,46 @@ if __name__ == '__main__':
     # alpha: (N, 1)
     x, y, w = generate_linear_regression_dataset(N=2000, dim=10)
     lr = LinearRegression(A=np.dot(x, x.T), b=y)
-    print(f"------------CG------------")
-    import time
-    cg_start = time.time()
-    alpha = lr.run('CG', init_guess=np.random.randn(x.shape[0]))
-    cg_end = time.time()
-    # print(f"alpha: {alpha}")
-    w_hat = np.dot(x.T, alpha)
     
-    print(f"time:{cg_end-cg_start}, Estimated weights: {w_hat}, True weights: {w}")
-    print(f"------------BFGS------------")
-    bfgs_start = time.time()
-    alpha = lr.run('BFGS')
-    bfgs_end = time.time()
+    print(f"------------{method}------------")
+    start = time()
+    alpha = lr.run(method, init_guess=np.random.randn(x.shape[0],1))
+    end = time()
     w_hat = np.dot(x.T, alpha)
-    print(f"time:{bfgs_end-bfgs_start}, Estimated weights: {w_hat}, True weights: {w}")
+    print(f"time:{end-start}, Estimated weights: {w_hat}, True weights: {w}")
+
+
+def mlp_fitting(method='CG'):
+    tgt_func = lambda x: np.sin(x) + np.cos(x)
+    X, Y = generate_fitting_dataset(N=5000, func=tgt_func)
+    mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1)
+    param = mlp.run(method)
+
+    # Test the model
+    state_dict = {}
+    for key in mlp.model.state_dict().keys():
+        state_dict[key] = torch.tensor(param[:mlp.model.state_dict()[key].numel()]).reshape(mlp.model.state_dict()[key].shape)
+        param = param[mlp.model.state_dict()[key].numel():]
+    mlp.model.load_state_dict(state_dict)
+    error = F.mse_loss(mlp.model(mlp.X), mlp.Y).item()
+    print(f"MSE Error: {error}")
+    test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
+    print(f"x: {test_X.shape}")
+    visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
+
+def visulize(model, tgt_func, x):
+    plt.figure()
+    x = x.to(torch.float32)
+    plt.plot(x, tgt_func(x), label='True function')
+    x = x.to(torch.float32)
+    model.eval()
+    plt.plot(x, model(x).detach().cpu().numpy(), label='Fitted function')
+    plt.legend()
+    plt.savefig('./visualize/output.png')
+
+if __name__ == '__main__':
+    # linear_regression()
+    mlp_fitting('CG')
+
+
+    
