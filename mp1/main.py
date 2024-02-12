@@ -71,7 +71,7 @@ class MLP_fitter:
         self.model.load_state_dict(state_dict)
 
         # Compute loss
-        mse_loss = F.mse_loss(self.model(self.X), self.Y)
+        mse_loss = F.mse_loss(self.model(self.X), self.Y, reduction='mean')
 
         grad = torch.autograd.grad(mse_loss, self.model.parameters(), create_graph=True)
         grad = torch.cat([g.flatten() for g in grad])
@@ -106,8 +106,8 @@ def linear_regression(method='CG'):
     print(f"Time Usage: {end-start}, Estimated weights: {w_hat}, True weights: {w}")
 
 def mlp_fitting(method='CG'):
-    tgt_func = lambda x: x**3 - 2*x**2 + 3*x - 1
-    X, Y = generate_fitting_dataset(N=5000, func=tgt_func)
+    tgt_func = lambda x: np.e**x
+    X, Y = generate_fitting_dataset(N=10000, func=tgt_func)
     mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1)
     
     print("\n"+"="*40)
@@ -127,7 +127,6 @@ def mlp_fitting(method='CG'):
     test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
     print(f"x: {test_X.shape}")
     visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
-    print("="*40 + "\n")
     print("="*40 + "\n")
 
 
