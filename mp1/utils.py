@@ -40,7 +40,7 @@ def plot_func2D(function, path=None, output_path='output.png'):
     plt.savefig(os.path.join('./visualize', output_path))
 
 
-def visulize(model, tgt_func, x):
+def visulize(model, tgt_func, x, name):
     plt.figure()
     x = x.to(torch.float32)
     plt.plot(x, tgt_func(x), label='True function')
@@ -48,4 +48,4 @@ def visulize(model, tgt_func, x):
     model.eval()
     plt.plot(x, model(x).detach().cpu().numpy(), label='Fitted function')
     plt.legend()
-    plt.savefig('./visualize/output.png')
+    plt.savefig(f'./visualize/{name}_output.png')

@@ -1,0 +1,1 @@
+Layer: 5, Method: CG, Error: 0.007503645797260106, Time: 20.602578020095827, Iterations: 131.0

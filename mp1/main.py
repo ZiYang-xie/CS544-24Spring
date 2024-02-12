@@ -42,14 +42,14 @@ class LinearRegression:
         return result['allvecs'][-1]
     
 class MLP_fitter:
-    def __init__(self, X, Y, input_dim, hidden_dim, output_dim=1) -> None:
+    def __init__(self, X, Y, input_dim, hidden_dim, output_dim=1, layer_num=3) -> None:
         self.X = torch.tensor(X, dtype=torch.float32)
         self.Y = torch.tensor(Y, dtype=torch.float32)
-        self.model = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim)
-        )
+        layers = [nn.Linear(input_dim, hidden_dim), nn.ReLU()] 
+        for _ in range(layer_num-1):
+            layers.append(nn.Linear(hidden_dim, hidden_dim))
+            layers.append(nn.ReLU())
+        self.model = nn.Sequential(*layers, nn.Linear(hidden_dim, output_dim))
 
     def func(self, params):
         # Update model weights
@@ -92,7 +92,7 @@ class MLP_fitter:
                                             'return_all': True
                                         })
         print(f"Final loss: {self.func(result.x)}")
-        return result.x
+        return result
 
 def linear_regression(method='CG'):
     x, y, w = generate_linear_regression_dataset(N=2000)
@@ -106,29 +106,45 @@ def linear_regression(method='CG'):
     print(f"Time Usage: {end-start}, Estimated weights: {w_hat}, True weights: {w}")
 
 def mlp_fitting(method='CG'):
-    tgt_func = lambda x: np.e**x
-    X, Y = generate_fitting_dataset(N=10000, func=tgt_func)
-    mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1)
-    
-    print("\n"+"="*40)
-    start = time()
-    param = mlp.run(method)
-    end = time()
-    print(f"Time Usage: {end-start}")
+    tgt_func = lambda x: x**3 - 2*x**2 + 3*x - 1 # lambda x: np.sin(x) + np.cos(x) +x**2#
+    X, Y = generate_fitting_dataset(N=1000, func=tgt_func)
+    layers = [1,3,5]
+    for layer in layers:
+        result_dict = {
+            'error': [],
+            'time': [],
+            'iterations': [],
+        }
+        for _ in range(5):
+            mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1, layer_num=layer)
 
-    # Test the model
-    state_dict = {}
-    for key in mlp.model.state_dict().keys():
-        state_dict[key] = torch.tensor(param[:mlp.model.state_dict()[key].numel()]).reshape(mlp.model.state_dict()[key].shape)
-        param = param[mlp.model.state_dict()[key].numel():]
-    mlp.model.load_state_dict(state_dict)
-    error = F.mse_loss(mlp.model(mlp.X), mlp.Y).item()
-    print(f"MSE Error: {error}")
-    test_X = np.linspace(-5, 5, 1000).reshape(-1, 1)
-    print(f"x: {test_X.shape}")
-    visulize(mlp.model, tgt_func, torch.FloatTensor(test_X))
-    print("="*40 + "\n")
+            print("\n"+"="*40)
+            start = time()
+            results = mlp.run(method)
+            end = time()
+            print(f"Time Usage: {end-start}")
 
+            # Test the model
+            param = results.x
+            state_dict = {}
+            for key in mlp.model.state_dict().keys():
+                state_dict[key] = torch.tensor(param[:mlp.model.state_dict()[key].numel()]).reshape(mlp.model.state_dict()[key].shape)
+                param = param[mlp.model.state_dict()[key].numel():]
+            mlp.model.load_state_dict(state_dict)
+            error = F.mse_loss(mlp.model(mlp.X), mlp.Y, reduction='mean').item()
+
+            result_dict['error'].append(error)
+            result_dict['time'].append(end-start)
+            result_dict['iterations'].append(results.nit)
+
+            # print(f"MSE Error: {error}")
+            # test_X = np.linspace(-5, 5, 10000).reshape(-1, 1)
+            # print(f"x: {test_X.shape}")
+            # visulize(mlp.model, tgt_func, torch.FloatTensor(test_X), method)
+            print("="*40 + "\n")
+        
+        with open(f"results/{method}_layer_{layer}.txt", 'w') as f:
+            f.write(f"Layer: {layer}, Method: {method}, Error: {np.mean(result_dict['error'])}, Time: {np.mean(result_dict['time'])}, Iterations: {np.mean(result_dict['iterations'])}\n")
 
 if __name__ == '__main__':
     # linear_regression()
