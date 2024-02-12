@@ -10,3 +10,9 @@ def generate_linear_regression_dataset(N):
     print(f"Estimated weights: {w_hat.T}")
     print(f"True weights: {w}")
     return x.T, y.T, w
+
+
+def generate_fitting_dataset(N, func):
+    x = np.random.randn(N, 1)
+    y = func(x) #+ np.random.randn(1, N) * 0.01
+    return x, y
