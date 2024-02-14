@@ -7,8 +7,8 @@ def generate_linear_regression_dataset(N, dim=2):
 
     # linear regression
     w_hat, residuals, rank, s = np.linalg.lstsq(x.T, y.T, rcond=None)
-    print(f"Estimated weights: {w_hat.T}")
-    print(f"True weights: {w}")
+    # print(f"Estimated weights: {w_hat.T}")
+    # print(f"True weights: {w}")
     return x.T, y.T, w
 
 

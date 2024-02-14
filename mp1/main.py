@@ -94,9 +94,11 @@ class MLP_fitter:
                                         })
         print(f"Final loss: {self.func(result.x)}")
         return result
+import memory_profiler
 
+@memory_profiler.profile
 def linear_regression(method='CG'):
-    x, y, w = generate_linear_regression_dataset(N=2000)
+    x, y, w = generate_linear_regression_dataset(N=10000, dim=500)
     lr = LinearRegression(A=np.dot(x, x.T), b=y)
     
     print(f"------------{method}------------")
@@ -106,6 +108,7 @@ def linear_regression(method='CG'):
     w_hat = np.dot(x.T, alpha)
     print(f"Time Usage: {end-start}, Estimated weights: {w_hat}, True weights: {w}")
 
+@memory_profiler.profile
 def mlp_fitting(method='CG'):
     tgt_func = lambda x: x**3 - 2*x**2 + 3*x - 1 # lambda x: np.sin(x) + np.cos(x) +x**2#
     X, Y = generate_fitting_dataset(N=5000, func=tgt_func)
@@ -148,9 +151,10 @@ def mlp_fitting(method='CG'):
             f.write(f"Layer: {layer}, Method: {method}, Error: {np.mean(result_dict['error'])}, Time: {np.mean(result_dict['time'])}, Iterations: {np.mean(result_dict['iterations'])}\n")
 
 if __name__ == '__main__':
-    # linear_regression()
-    mlp_fitting('CG')
-    mlp_fitting('BFGS')
+    # linear_regression('CG')
+    linear_regression('BFGS')
+    # mlp_fitting('CG')
+    # mlp_fitting('BFGS')
 
 
     
