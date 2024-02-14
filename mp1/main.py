@@ -81,12 +81,13 @@ class MLP_fitter:
         params_dict = self.model.state_dict()
         init_params = np.concatenate([params_dict[key].detach().numpy().flatten() for key in params_dict.keys()])
         print("Optimize variable size:", init_params.shape[0])
+        init_params = np.random.randn(init_params.shape[0]) * 10 # Highly Non-linear initial func
         print(f"Init loss: {self.func(init_params)}")
 
         print(f"------------{method}------------")
-        result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-3,
+        result = minimize_with_restart(self.func, init_params, method=method, jac=self.grad, tol=1e-2,
                                         options={
-                                            'gtol': 1e-3,
+                                            'gtol': 1e-2,
                                             'disp': True,
                                             'maxiter': 1000,
                                             'return_all': True
@@ -107,7 +108,7 @@ def linear_regression(method='CG'):
 
 def mlp_fitting(method='CG'):
     tgt_func = lambda x: x**3 - 2*x**2 + 3*x - 1 # lambda x: np.sin(x) + np.cos(x) +x**2#
-    X, Y = generate_fitting_dataset(N=1000, func=tgt_func)
+    X, Y = generate_fitting_dataset(N=5000, func=tgt_func)
     layers = [1,3,5]
     for layer in layers:
         result_dict = {
@@ -116,7 +117,7 @@ def mlp_fitting(method='CG'):
             'iterations': [],
         }
         for _ in range(5):
-            mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=10, output_dim=1, layer_num=layer)
+            mlp = MLP_fitter(X, Y, input_dim=1, hidden_dim=16, output_dim=1, layer_num=layer)
 
             print("\n"+"="*40)
             start = time()
@@ -143,7 +144,7 @@ def mlp_fitting(method='CG'):
             # visulize(mlp.model, tgt_func, torch.FloatTensor(test_X), method)
             print("="*40 + "\n")
         
-        with open(f"results/{method}_layer_{layer}.txt", 'w') as f:
+        with open(f"results/final_res.txt", 'a') as f:
             f.write(f"Layer: {layer}, Method: {method}, Error: {np.mean(result_dict['error'])}, Time: {np.mean(result_dict['time'])}, Iterations: {np.mean(result_dict['iterations'])}\n")
 
 if __name__ == '__main__':

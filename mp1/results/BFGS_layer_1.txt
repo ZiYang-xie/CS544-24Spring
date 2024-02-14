@@ -1,1 +1,0 @@
-Layer: 1, Method: BFGS, Error: 0.00974380001425743, Time: 0.20752663612365724, Iterations: 74.0

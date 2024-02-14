@@ -1,0 +1,6 @@
+Layer: 1, Method: CG, Error: 0.07092225253582, Time: 1.836371660232544, Iterations: 263.8
+Layer: 3, Method: CG, Error: 3990.07785949707, Time: 11.392576122283936, Iterations: 0.0
+Layer: 5, Method: CG, Error: 3999880350.4, Time: 25.306250858306885, Iterations: 0.0
+Layer: 1, Method: BFGS, Error: 0.04281402612105012, Time: 0.24954628944396973, Iterations: 78.8
+Layer: 3, Method: BFGS, Error: 0.06961224358528853, Time: 5.176789236068726, Iterations: 0.0
+Layer: 5, Method: BFGS, Error: 51193.835668945314, Time: 27.869821310043335, Iterations: 0.0
