@@ -26,7 +26,7 @@ def FDmat(M, N):
     combined = np.vstack([Dx.toarray(), Dy.toarray()])  # Convert to dense for concatenation
     return combined
 
-def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, verbose=True):
+def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', verbose=True):
     """
     Denoise an image using ADMM.
     """
@@ -49,10 +49,16 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, verbose=True):
     for i in trange(max_iter):
         # Update x using a more efficient way
         b = noise_image + c * D.T @ (z - u)
-        # A = I + c * DtD
-        lambda_inv = np.diag(1 / (1 + c * eigenvalues))
-        A_inv = eigenvectors @ lambda_inv @ eigenvectors.T
-        x = A_inv @ b
+        if mode == 'cg':
+            A = I + c * DtD
+            for i in range(x.shape[-1]):
+                x_i, _ = cg(A, b[:, i], x0=x[:, i], tol=1e-5)
+                x[:, i] = x_i
+
+        elif mode == 'direct':
+            lambda_inv = np.diag(1 / (1 + c * eigenvalues))
+            A_inv = eigenvectors @ lambda_inv @ eigenvectors.T
+            x = A_inv @ b
 
         # Update z
         Dx_plus_u = D @ x + u
