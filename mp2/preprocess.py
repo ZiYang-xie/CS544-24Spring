@@ -1,4 +1,5 @@
 import numpy as np
+import imageio
 import cv2
 import argparse
 
@@ -7,10 +8,10 @@ def preprocess(filename,
                 noise_scale=0.05,
                 rgb2grey=True, 
                 save=False):
-    img = cv2.imread(filename)
+    img = imageio.imread(filename)
     ori_img = cv2.resize(img, (size, size))
     if rgb2grey:
-        ori_img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2GRAY)
+        ori_img = cv2.cvtColor(ori_img, cv2.COLOR_RGB2GRAY)
         ori_img = np.expand_dims(ori_img, axis=-1)
     
     ori_img = ori_img / 255.0

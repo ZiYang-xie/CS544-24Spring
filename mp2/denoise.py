@@ -33,7 +33,7 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, verbose=True):
     H, W, _ = noise_image.shape
     noise_image = noise_image.reshape(-1, noise_image.shape[-1])
     D = FDmat(H, W)
-    obj_fn = lambda x: 0.5*np.linalg.norm(x - noise_image.flatten(), 2)**2 + alpha * np.linalg.norm(D @ x, 1)
+    obj_fn = lambda x: 0.5*np.linalg.norm(x - noise_image, 2)**2 + alpha * np.linalg.norm(D @ x, 1)
 
     if verbose:
         print("Starting ADMM...")
@@ -44,16 +44,19 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, verbose=True):
     c = 2.0
     I = eye(H*W, format='csc')
     DtD = D.T @ D
+    eigenvalues, eigenvectors = np.linalg.eigh(DtD)
 
     for i in trange(max_iter):
-        # Update x using a more efficient solver
-        A = I + c * DtD
+        # Update x using a more efficient way
         b = noise_image + c * D.T @ (z - u)
-        x, _ = cg(A, b, x0=x.flatten())
-        x = x.reshape(-1, 1)
+        # A = I + c * DtD
+        lambda_inv = np.diag(1 / (1 + c * eigenvalues))
+        A_inv = eigenvectors @ lambda_inv @ eigenvectors.T
+        x = A_inv @ b
+
         # Update z
         Dx_plus_u = D @ x + u
-        z = np.sign(Dx_plus_u) * np.maximum(np.abs(Dx_plus_u) - alpha / c, 0)
+        z = np.multiply(np.sign(Dx_plus_u), np.maximum(np.abs(Dx_plus_u) - alpha / c, 0), out=z)
         u = u + D @ x - z
         c = 2.0 * c
         
@@ -63,17 +66,17 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, verbose=True):
                 print(f'Converged at iteration {i}')
             break
         if verbose and i % 10 == 0:
-            print(f'Iteration {i}, objective function value: {obj_fn(x.flatten())}')
+            print(f'Iteration {i}, objective function value: {obj_fn(x)}')
     
     return x.reshape(H, W, -1)
     
 
-def run(image_path):
+def run(image_path, rgb2grey=False):
     """
     Run the denoising process.
     :param image_path: Path to the image to denoise.
     """
-    ori_img, noise_image = preprocess(image_path)
+    ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey)
     denoised_image = denoise_image(noise_image)
 
     # Compute the RMSE
@@ -89,9 +92,13 @@ def run(image_path):
     noise_image = (noise_image * 255).astype(np.uint8)
     ori_img = (ori_img * 255).astype(np.uint8)
 
-    imageio.imsave('assets/original_image.png', ori_img[..., 0])
-    imageio.imsave('assets/noise_image.png', noise_image[..., 0])
-    imageio.imsave('assets/denoised_image.png', denoised_image[..., 0])
+    denoised_image = denoised_image[..., 0] if rgb2grey else denoised_image
+    noise_image = noise_image[..., 0] if rgb2grey else noise_image
+    ori_img = ori_img[..., 0] if rgb2grey else ori_img
+
+    imageio.imsave('assets/original_image.png', ori_img)
+    imageio.imsave('assets/noise_image.png', noise_image)
+    imageio.imsave('assets/denoised_image.png', denoised_image)
 
 if __name__ == '__main__':
-    run('assets/white.jpg')
+    run('assets/image.jpg')
