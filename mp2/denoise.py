@@ -64,7 +64,7 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
         Dx_plus_u = D @ x + u
         z = np.multiply(np.sign(Dx_plus_u), np.maximum(np.abs(Dx_plus_u) - alpha / c, 0), out=z)
         u = u + D @ x - z
-        c = 2.0 * c
+        c = 1.1 * c
         
         # Check for convergence
         if np.linalg.norm(D @ x - z) < tol:
@@ -82,7 +82,7 @@ def run(image_path, rgb2grey=False):
     Run the denoising process.
     :param image_path: Path to the image to denoise.
     """
-    ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey)
+    ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey, size=64)
     denoised_image = denoise_image(noise_image)
 
     # Compute the RMSE
