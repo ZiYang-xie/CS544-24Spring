@@ -1,11 +1,11 @@
-import imageio
+import cv2
 import numpy as np
 from tqdm import trange
 from scipy.sparse import eye, kron, diags, vstack
 from scipy.sparse.linalg import cg
 
 from preprocess import preprocess
-
+from core import TotalVariationDenoising
 def FDmat(M, N):
     # Helper function to create a 2D finite difference matrix
     def create_2D_FDmat(size):
@@ -77,14 +77,21 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
     return x.reshape(H, W, -1)
     
 
-def run(image_path, rgb2grey=False):
+def run(image_path, rgb2grey=False, admm=True):
     """
     Run the denoising process.
     :param image_path: Path to the image to denoise.
     """
     ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey)
-    denoised_image = denoise_image(noise_image)
-
+    if admm:
+        denoised_image = denoise_image(noise_image)
+    else:
+        denoised_image = np.zeros_like(noise_image)
+        for i in range(3):
+            tvd_channel = TotalVariationDenoising(noise_image[:, :, i], iter=100, lam=0.05, dt=0.001)
+            denoised_channel = tvd_channel.generate()
+            denoised_image[:, :, i] = denoised_channel
+    print(denoised_image.min(), denoised_image.max())
     # Compute the RMSE
     ori_rmse = np.sqrt(np.mean((ori_img - noise_image) ** 2))
     rmse = np.sqrt(np.mean((denoised_image - ori_img) ** 2))
@@ -102,9 +109,9 @@ def run(image_path, rgb2grey=False):
     noise_image = noise_image[..., 0] if rgb2grey else noise_image
     ori_img = ori_img[..., 0] if rgb2grey else ori_img
 
-    imageio.imsave('assets/original_image.png', ori_img)
-    imageio.imsave('assets/noise_image.png', noise_image)
-    imageio.imsave('assets/denoised_image.png', denoised_image)
+    cv2.imwrite('assets/original_image.png', ori_img)
+    cv2.imwrite('assets/noise_image.png', noise_image)
+    cv2.imwrite('assets/denoised_image.png', denoised_image)
 
 if __name__ == '__main__':
-    run('assets/image.jpg')
+    run('assets/image.jpg', admm=False)
