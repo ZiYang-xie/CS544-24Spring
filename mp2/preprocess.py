@@ -4,7 +4,7 @@ import argparse
 
 def preprocess(filename,
                 size=64,
-                noise_scale=0.05,
+                noise_scale=0.1,
                 rgb2grey=True, 
                 save=False):
     img = cv2.imread(filename)

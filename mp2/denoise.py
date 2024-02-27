@@ -1,4 +1,6 @@
 import cv2
+import os
+import imageio
 import numpy as np
 from tqdm import trange
 from scipy.sparse import eye, kron, diags, vstack
@@ -6,6 +8,8 @@ from scipy.sparse.linalg import cg
 
 from preprocess import preprocess
 from core import TotalVariationDenoising
+from matplotlib import pyplot as plt
+
 def FDmat(M, N):
     # Helper function to create a 2D finite difference matrix
     def create_2D_FDmat(size):
@@ -26,7 +30,7 @@ def FDmat(M, N):
     combined = np.vstack([Dx.toarray(), Dy.toarray()])  # Convert to dense for concatenation
     return combined
 
-def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', verbose=True):
+def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-7, mode='cg', verbose=True):
     """
     Denoise an image using ADMM.
     """
@@ -48,11 +52,12 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
 
     for i in trange(max_iter):
         # Update x using a more efficient way
-        b = noise_image + c * D.T @ (z - u)
+        # noise image: ATb
+        b = noise_image + c * D.T @ (z - u) # c: rho, u: lambda/rho
         if mode == 'cg':
             A = I + c * DtD
             for i in range(x.shape[-1]):
-                x_i, _ = cg(A, b[:, i], x0=x[:, i], tol=1e-5)
+                x_i, _ = cg(A, b[:, i], x0=x[:, i], tol=1e-5, maxiter=max_iter)
                 x[:, i] = x_i
 
         elif mode == 'direct':
@@ -82,7 +87,7 @@ def run(image_path, rgb2grey=False, admm=True):
     Run the denoising process.
     :param image_path: Path to the image to denoise.
     """
-    ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey)
+    ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey, size=64)
     if admm:
         denoised_image = denoise_image(noise_image)
     else:
@@ -109,9 +114,17 @@ def run(image_path, rgb2grey=False, admm=True):
     noise_image = noise_image[..., 0] if rgb2grey else noise_image
     ori_img = ori_img[..., 0] if rgb2grey else ori_img
 
-    cv2.imwrite('assets/original_image.png', ori_img)
-    cv2.imwrite('assets/noise_image.png', noise_image)
-    cv2.imwrite('assets/denoised_image.png', denoised_image)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    ax[0].imshow(ori_img, cmap='gray')
+    ax[0].set_title('Original Image')
+    ax[1].imshow(noise_image)
+    ax[1].set_title('Noisy Image')
+    ax[2].imshow(denoised_image)
+    ax[2].set_title('Denoised Image')
+    fig.suptitle(f'Ori RMSE: {ori_rmse:.4f}, Denoised RMSE: {rmse:.4f}')
+    plt.savefig(f'results/{image_path.split("/")[-1]}')
 
 if __name__ == '__main__':
-    run('assets/image.jpg', admm=False)
+    images = os.listdir('assets')
+    for image in images:
+        run(f'assets/{image}')
