@@ -1,10 +1,12 @@
 import imageio
+import os
 import numpy as np
 from tqdm import trange
 from scipy.sparse import eye, kron, diags, vstack
 from scipy.sparse.linalg import cg
 
 from preprocess import preprocess
+from matplotlib import pyplot as plt
 
 def FDmat(M, N):
     # Helper function to create a 2D finite difference matrix
@@ -26,7 +28,7 @@ def FDmat(M, N):
     combined = np.vstack([Dx.toarray(), Dy.toarray()])  # Convert to dense for concatenation
     return combined
 
-def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', verbose=True):
+def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-7, mode='cg', verbose=True):
     """
     Denoise an image using ADMM.
     """
@@ -48,11 +50,12 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
 
     for i in trange(max_iter):
         # Update x using a more efficient way
-        b = noise_image + c * D.T @ (z - u)
+        # noise image: ATb
+        b = noise_image + c * D.T @ (z - u) # c: rho, u: lambda/rho
         if mode == 'cg':
             A = I + c * DtD
             for i in range(x.shape[-1]):
-                x_i, _ = cg(A, b[:, i], x0=x[:, i], tol=1e-5)
+                x_i, _ = cg(A, b[:, i], x0=x[:, i], tol=1e-5, maxiter=max_iter)
                 x[:, i] = x_i
 
         elif mode == 'direct':
@@ -64,7 +67,7 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
         Dx_plus_u = D @ x + u
         z = np.multiply(np.sign(Dx_plus_u), np.maximum(np.abs(Dx_plus_u) - alpha / c, 0), out=z)
         u = u + D @ x - z
-        c = 1.1 * c
+        c = 2.0 * c
         
         # Check for convergence
         if np.linalg.norm(D @ x - z) < tol:
@@ -102,9 +105,17 @@ def run(image_path, rgb2grey=False):
     noise_image = noise_image[..., 0] if rgb2grey else noise_image
     ori_img = ori_img[..., 0] if rgb2grey else ori_img
 
-    imageio.imsave('assets/original_image.png', ori_img)
-    imageio.imsave('assets/noise_image.png', noise_image)
-    imageio.imsave('assets/denoised_image.png', denoised_image)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    ax[0].imshow(ori_img, cmap='gray')
+    ax[0].set_title('Original Image')
+    ax[1].imshow(noise_image)
+    ax[1].set_title('Noisy Image')
+    ax[2].imshow(denoised_image)
+    ax[2].set_title('Denoised Image')
+    fig.suptitle(f'Ori RMSE: {ori_rmse:.4f}, Denoised RMSE: {rmse:.4f}')
+    plt.savefig(f'results/{image_path.split("/")[-1]}')
 
 if __name__ == '__main__':
-    run('assets/image.jpg')
+    images = os.listdir('assets')
+    for image in images:
+        run(f'assets/{image}')
