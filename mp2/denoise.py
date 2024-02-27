@@ -48,7 +48,8 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
 
     for i in trange(max_iter):
         # Update x using a more efficient way
-        b = noise_image + c * D.T @ (z - u)
+        # noise image: ATb
+        b = noise_image + c * D.T @ (z - u) # c: rho, u: lambda/rho
         if mode == 'cg':
             A = I + c * DtD
             for i in range(x.shape[-1]):
