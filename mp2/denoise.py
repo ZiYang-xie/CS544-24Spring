@@ -1,11 +1,13 @@
-import imageio
+import cv2
 import os
+import imageio
 import numpy as np
 from tqdm import trange
 from scipy.sparse import eye, kron, diags, vstack
 from scipy.sparse.linalg import cg
 
 from preprocess import preprocess
+from core import TotalVariationDenoising
 from matplotlib import pyplot as plt
 
 def FDmat(M, N):
@@ -80,14 +82,21 @@ def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', ver
     return x.reshape(H, W, -1)
     
 
-def run(image_path, rgb2grey=False):
+def run(image_path, rgb2grey=False, admm=True):
     """
     Run the denoising process.
     :param image_path: Path to the image to denoise.
     """
     ori_img, noise_image = preprocess(image_path, rgb2grey=rgb2grey, size=64)
-    denoised_image = denoise_image(noise_image)
-
+    if admm:
+        denoised_image = denoise_image(noise_image)
+    else:
+        denoised_image = np.zeros_like(noise_image)
+        for i in range(3):
+            tvd_channel = TotalVariationDenoising(noise_image[:, :, i], iter=100, lam=0.05, dt=0.001)
+            denoised_channel = tvd_channel.generate()
+            denoised_image[:, :, i] = denoised_channel
+    print(denoised_image.min(), denoised_image.max())
     # Compute the RMSE
     ori_rmse = np.sqrt(np.mean((ori_img - noise_image) ** 2))
     rmse = np.sqrt(np.mean((denoised_image - ori_img) ** 2))
