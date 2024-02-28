@@ -28,7 +28,7 @@ def FDmat(M, N):
     combined = np.vstack([Dx.toarray(), Dy.toarray()])  # Convert to dense for concatenation
     return combined
 
-def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-7, mode='cg', verbose=True):
+def denoise_image(noise_image, alpha=0.1, max_iter=100, tol=1e-5, mode='cg', verbose=True):
     """
     Denoise an image using ADMM.
     """
@@ -106,6 +106,8 @@ def run(image_path, rgb2grey=False):
     ori_img = ori_img[..., 0] if rgb2grey else ori_img
 
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    for a in ax:
+        a.axis('off')
     ax[0].imshow(ori_img, cmap='gray')
     ax[0].set_title('Original Image')
     ax[1].imshow(noise_image)
@@ -116,6 +118,6 @@ def run(image_path, rgb2grey=False):
     plt.savefig(f'results/{image_path.split("/")[-1]}')
 
 if __name__ == '__main__':
-    images = os.listdir('assets')
+    images = [f for f in os.listdir('assets') if f.endswith('.jpg')]
     for image in images:
         run(f'assets/{image}')

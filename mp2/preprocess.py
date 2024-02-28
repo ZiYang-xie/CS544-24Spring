@@ -5,7 +5,7 @@ import argparse
 
 def preprocess(filename,
                 size=64,
-                noise_scale=0.1,
+                noise_scale=0.05,
                 rgb2grey=True, 
                 save=False):
     img = imageio.imread(filename)
