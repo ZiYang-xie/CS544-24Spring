@@ -7,7 +7,8 @@ def preprocess(filename,
                 noise_scale=0.1,
                 rgb2grey=True, 
                 save=False):
-    img = cv2.imread(filename)
+    img = cv2.imread(filename)[:, :, [2,1,0]]
+    # import pdb; pdb.set_trace()
     ori_img = cv2.resize(img, (size, size))
     if rgb2grey:
         ori_img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2GRAY)
