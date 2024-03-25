@@ -27,6 +27,7 @@ class Solver:
         def barrier_fn(x):
             aug_x = np.concatenate([x, [1]])
             return -np.sum(np.log(-self.A.dot(aug_x)))
+        
         def origin_obj_fn(x):
             # import pdb; pdb.set_trace()
             return 0.5*x.dot(self.Q).dot(x) + np.dot(self.B, x)
@@ -99,6 +100,12 @@ class Solver:
             
         return x0
 
+    def primal_dual_method(self, x0, obj_fn, max_iter=10, tol=1e-7, verbose=True):
+        if verbose:
+            print("Starting Primal-Dual Method...")
+        x0 = x0
+        last_x = x0
+        self.lamb = np.ones(self.C.shape[0])
 
 # def generate_problem(n=30, num_ineq=6, num_eq=4):
 #     tmp_Q = np.random.randn(n, n)
