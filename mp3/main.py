@@ -23,11 +23,12 @@ class Solver:
         self.A = A
         self.C = C
 
-    def solve(self, method, tol=1e-3):
+    def solve(self, method, tol=1e-6):
         def barrier_fn(x):
             aug_x = np.concatenate([x, [1]])
             return -np.sum(np.log(-self.A.dot(aug_x)))
         def origin_obj_fn(x):
+            # import pdb; pdb.set_trace()
             return 0.5*x.dot(self.Q).dot(x) + np.dot(self.B, x)
         
         def obj_fn(x, ):
@@ -35,7 +36,8 @@ class Solver:
         
         self.t = 8
         m = self.A.shape[0]
-        x = np.array([-1,])# np.zeros_like(self.Q.shape[0])
+        x = -np.ones(self.Q.shape[0])
+        print(f"Initial x: {x}")
         # Solve the problem
         while True:
             if method == 'ALM':
@@ -59,7 +61,6 @@ class Solver:
         tmp_C = self.C[:, :-1]
         const_C = self.C[:, -1]
         grad += self.mu * 2 * (tmp_C.T.dot(tmp_C).dot(x) + tmp_C.T.dot(const_C))
-        # grad += mu * self.C.T.dot(self.C.dot(aug_x))
         return grad
     
     def solve_ALM(self, x0, obj_fn, max_iter=10, tol=1e-7, verbose=True):
@@ -93,7 +94,6 @@ class Solver:
             if np.linalg.norm(last_x - x0) < tol:
                 if verbose:
                     print(f'Converged at iteration {i}')
-                    
                 break
             last_x = x0
             
@@ -114,10 +114,10 @@ if __name__ == "__main__":
     # f(x) = 0.5*xQx + Bx
     # s.t.  A[x,1] <= 0
     #       C[x,1] = 0
-    Q = np.array([[1]])
-    B = np.array([0, ])
-    A = np.array([[1, 0]])
-    C = np.array([[1, 0]])
+    Q = np.array([[1, 0], [0, 1]])
+    B = np.array([0, 0])
+    A = np.array([[1, 1, 0]])
+    C = np.array([[1, 0, 0]])
     print(f"Q: {Q.shape}, B: {B.shape}, A: {A.shape}, C: {C.shape}")
     # Q, B, A, C = generate_problem()
     # print(f"Q: {Q.shape}, B: {B.shape}, A: {A.shape}, C: {C.shape}")
