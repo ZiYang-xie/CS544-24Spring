@@ -31,7 +31,7 @@ class PrimalDualSolver(BaseSolver):
                 [S, np.zeros((n, m)), X]
             ])
 
-            rhs = np.concatenate([-rd, -rp, -rg])
+            rhs = np.concatenate([rd, rp, rg])
             # solve deltas = [dx, dy, ds]
             deltas = np.linalg.solve(KKT, rhs) 
             delta_x = deltas[:n]
@@ -39,9 +39,15 @@ class PrimalDualSolver(BaseSolver):
             delta_s = deltas[n+m:]
 
             # Line search parameters for step size
-            alpha_p = min(1, 0.9 * min(-x[delta_x <= 0] / delta_x[delta_x <= 0]))
-            alpha_d = min(1, 0.9 * min(-s[delta_s <= 0] / delta_s[delta_s <= 0]))
-
+            if (delta_x <= 0).any():
+                alpha_p = min(1, 0.9 * min(-x[delta_x <= 0] / delta_x[delta_x <= 0]))
+            else:
+                alpha_p = 1
+            if (delta_s <= 0).any():
+                alpha_d = min(1, 0.9 * min(-s[delta_s <= 0] / delta_s[delta_s <= 0]))
+            else:
+                alpha_d = 1
+            
             if np.isnan(alpha_p) or np.isinf(alpha_p):
                 alpha_p = 1
             if np.isnan(alpha_d) or np.isinf(alpha_d):
