@@ -4,19 +4,10 @@ from scipy.sparse import eye, kron, diags, vstack
 from scipy.sparse.linalg import cg
 from tqdm import trange
 from functools import partial
-# Generate a random problem of size n
-# f(x) = 0.5*xQx + Bx
-# s.t.  A[x,1] <= 0
-#       C[x,1] = 0
-def generate_problem(n=30, num_ineq=6, num_eq=4):
-    tmp_Q = np.random.randn(n, n)
-    Q = tmp_Q.T @ tmp_Q
-    B = np.random.randn(n)
-    A = np.random.randn(num_ineq, n+1)
-    C = np.random.randn(num_eq, n+1)
-    return Q, B, A, C
+from utils import generate_problem
+from base import BaseSolver
 
-class Solver:
+class CentralPathSolver(BaseSolver):
     def __init__(self, Q, B, A, C):
         self.Q = Q
         self.B = B
@@ -129,6 +120,6 @@ if __name__ == "__main__":
     # Q, B, A, C = generate_problem()
     # print(f"Q: {Q.shape}, B: {B.shape}, A: {A.shape}, C: {C.shape}")
     # dd
-    solver = Solver(Q, B, A, C)
+    solver = CentralPathSolver(Q, B, A, C)
     x = solver.solve('ALM')
     print(x)
