@@ -1,0 +1,10 @@
+primal_dual:
+Optimal value: -141935114.6117696
+Duality measure: 0.00967722888584283
+
+
+corrector_primal_dual:
+Optimal value: -157558451.31186426
+Duality measure: 0.009779835455965214
+
+

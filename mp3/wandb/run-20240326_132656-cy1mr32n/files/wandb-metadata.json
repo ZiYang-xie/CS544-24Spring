@@ -1,0 +1,49 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.10.12",
+    "heartbeatAt": "2024-03-26T18:26:56.984792",
+    "startedAt": "2024-03-26T18:26:56.408705",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--num_vars=30",
+        "--num_eqs=50",
+        "--vis"
+    ],
+    "state": "running",
+    "program": "/Users/ziyang/Desktop/Courses/Spring2024/544/CS544-24Spring/mp3/run.py",
+    "codePathLocal": "run.py",
+    "codePath": "mp3/run.py",
+    "git": {
+        "remote": "git@github.com:ZiYang-xie/CS544-24Spring.git",
+        "commit": "4f9a56e26b3132dc54d08c16c44cb67c7384d603"
+    },
+    "email": "ziyangxie01@gmail.com",
+    "root": "/Users/ziyang/Desktop/Courses/Spring2024/544/CS544-24Spring",
+    "host": "wirelessprv-10-193-126-235.near.illinois.edu",
+    "username": "ziyang",
+    "executable": "/Users/ziyang/miniconda3/envs/vision-basics/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2400,
+        "min": 2400,
+        "max": 2400
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2400,
+            "min": 2400,
+            "max": 2400
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 926.3517189025879,
+            "used": 374.79173278808594
+        }
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

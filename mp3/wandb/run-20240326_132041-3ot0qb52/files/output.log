@@ -1,0 +1,200 @@
+Iteration: 0, duality measure: 1.0
+Value: -1.3366831488981294
+Iteration: 1, duality measure: 0.841669300677845
+Value: -8.76891737264053
+Iteration: 2, duality measure: 0.6699558653725478
+Value: -18.32209116355063
+Iteration: 3, duality measure: 0.5855625025309521
+Value: -40.1226327389871
+Iteration: 4, duality measure: 0.46714758138648993
+Value: -159.40902217370265
+Iteration: 5, duality measure: 0.4669160127025982
+Value: -3576.674292933759
+Iteration: 6, duality measure: 2.0270346553484946
+Value: -13260.01208456489
+Iteration: 7, duality measure: 1.955719297516007
+Value: -70598.00597881354
+Iteration: 8, duality measure: 2.2331245559772275
+Value: -8347244.96887402
+Iteration: 9, duality measure: 87.97144921489722
+Value: -8493059.271718683
+Iteration: 10, duality measure: 99.89789036935827
+Value: -8491777.024634248
+Iteration: 11, duality measure: 100.37701375210297
+Value: -8491938.380427198
+Iteration: 12, duality measure: 95.76315291608165
+Value: -8495824.832200505
+Iteration: 13, duality measure: 104.21847932510632
+Value: -8495742.197428335
+Iteration: 14, duality measure: 99.04254888684977
+Value: -8496308.614735901
+Iteration: 15, duality measure: 95.54367385761157
+Value: -8496364.166660516
+Iteration: 16, duality measure: 90.76189291439614
+Value: -8498749.602220032
+Iteration: 17, duality measure: 87.21882841358874
+Value: -8498804.208121188
+Iteration: 18, duality measure: 82.85788735005038
+Value: -8498870.476028038
+Iteration: 19, duality measure: 78.71499297154618
+Value: -8498933.431905579
+Iteration: 20, duality measure: 74.77924321645534
+Value: -8498993.24071354
+Iteration: 21, duality measure: 71.04028101788703
+Value: -8499050.059767812
+Iteration: 22, duality measure: 67.48826694328882
+Value: -8499104.03850321
+Iteration: 23, duality measure: 64.11385355968523
+Value: -8499155.318874279
+Iteration: 24, duality measure: 60.90816082817616
+Value: -8499204.035728538
+Iteration: 25, duality measure: 57.86275274652072
+Value: -8499250.317212267
+Iteration: 26, duality measure: 54.96961504972702
+Value: -8499294.285024585
+Iteration: 27, duality measure: 52.221134257059674
+Value: -8499336.054826636
+Iteration: 28, duality measure: 49.6100774951864
+Value: -8499375.736467766
+Iteration: 29, duality measure: 47.1295735841196
+Value: -8499413.43434307
+Iteration: 30, duality measure: 44.77309485099074
+Value: -8499449.24758946
+Iteration: 31, duality measure: 42.53444007087905
+Value: -8499483.270429393
+Iteration: 32, duality measure: 40.40771801823042
+Value: -8499515.592345724
+Iteration: 33, duality measure: 38.38733207605225
+Value: -8499546.298376279
+Iteration: 34, duality measure: 36.467965419183116
+Value: -8499575.469280913
+Iteration: 35, duality measure: 34.64456710604168
+Value: -8499603.181808338
+Iteration: 36, duality measure: 32.91233870340572
+Value: -8499629.508856693
+Iteration: 37, duality measure: 31.266721723027732
+Value: -8499654.51968861
+Iteration: 38, duality measure: 29.703385588065164
+Value: -8499678.280098228
+Iteration: 39, duality measure: 28.21821626361166
+Value: -8499700.8525953
+Iteration: 40, duality measure: 26.80730540732373
+Value: -8499722.2965689
+Iteration: 41, duality measure: 25.4669400889697
+Value: -8499742.668431435
+Iteration: 42, duality measure: 24.193593038861568
+Value: -8499762.021781946
+Iteration: 43, duality measure: 22.983913340136557
+Value: -8499780.407536667
+Iteration: 44, duality measure: 21.834717627314713
+Value: -8499797.874068374
+Iteration: 45, duality measure: 20.74298170145774
+Value: -8499814.46733437
+Iteration: 46, duality measure: 19.70583256865324
+Value: -8499830.230987899
+Iteration: 47, duality measure: 18.72054089642882
+Value: -8499845.206509938
+Iteration: 48, duality measure: 17.78451380281557
+Value: -8499859.433296831
+Iteration: 49, duality measure: 16.895288067958024
+Value: -8499872.948784914
+Iteration: 50, duality measure: 16.050523617302993
+Value: -8499885.78853096
+Iteration: 51, duality measure: 15.247997394205619
+Value: -8499897.986325366
+Iteration: 52, duality measure: 14.485597476061534
+Value: -8499909.574256202
+Iteration: 53, duality measure: 13.761317558288182
+Value: -8499920.582818514
+Iteration: 54, duality measure: 13.07325163274313
+Value: -8499931.040975075
+Iteration: 55, duality measure: 12.419589005501058
+Value: -8499940.976244811
+Iteration: 56, duality measure: 11.798609509996785
+Value: -8499950.414771192
+Iteration: 57, duality measure: 11.208678987291247
+Value: -8499959.381387873
+Iteration: 58, duality measure: 10.648244991724376
+Value: -8499967.899687516
+Iteration: 59, duality measure: 10.1158326989133
+Value: -8499975.992089575
+Iteration: 60, duality measure: 9.610041015087193
+Value: -8499983.6798821
+Iteration: 61, duality measure: 9.129538919186976
+Value: -8499990.98329723
+Iteration: 62, duality measure: 8.673061926648542
+Value: -8499997.92155027
+Iteration: 63, duality measure: 8.239408786418203
+Value: -8500004.512901532
+Iteration: 64, duality measure: 7.827438300594589
+Value: -8500010.77469389
+Iteration: 65, duality measure: 7.436066338716567
+Value: -8500016.723403664
+Iteration: 66, duality measure: 7.064262975791547
+Value: -8500022.374684772
+Iteration: 67, duality measure: 6.711049781061207
+Value: -8500027.743407927
+Iteration: 68, duality measure: 6.375497246257532
+Value: -8500032.843700463
+Iteration: 69, duality measure: 6.05672233815461
+Value: -8500037.688982757
+Iteration: 70, duality measure: 5.7538861765427365
+Value: -8500042.292006996
+Iteration: 71, duality measure: 5.466191820574091
+Value: -8500046.664883146
+Iteration: 72, duality measure: 5.1928821839634
+Value: -8500050.819118483
+Iteration: 73, duality measure: 4.933238030292497
+Value: -8500054.765647115
+Iteration: 74, duality measure: 4.686576081456076
+Value: -8500058.514851416
+Iteration: 75, duality measure: 4.452247231568834
+Value: -8500062.076597767
+Iteration: 76, duality measure: 4.229634824964714
+Value: -8500065.46025977
+Iteration: 77, duality measure: 4.018153037841915
+Value: -8500068.674741507
+Iteration: 78, duality measure: 3.8172453390206074
+Value: -8500071.72850011
+Iteration: 79, duality measure: 3.6263830269436315
+Value: -8500074.629573433
+Iteration: 80, duality measure: 3.4450638289139515
+Value: -8500077.385594282
+Iteration: 81, duality measure: 3.272810591525757
+Value: -8500080.00381555
+Iteration: 82, duality measure: 3.1091700160260984
+Value: -8500082.491127126
+Iteration: 83, duality measure: 2.953711469303148
+Value: -8500084.854074184
+Iteration: 84, duality measure: 2.8060258501218374
+Value: -8500087.09887516
+Iteration: 85, duality measure: 2.665724511534823
+Value: -8500089.231436973
+Iteration: 86, duality measure: 2.5324382400266146
+Value: -8500091.257371597
+Iteration: 87, duality measure: 2.4058162821310694
+Value: -8500093.18200998
+Iteration: 88, duality measure: 2.2855254226648385
+Value: -8500095.010417553
+Iteration: 89, duality measure: 2.1712491055471475
+Value: -8500096.747405473
+Iteration: 90, duality measure: 2.0626866040206475
+Value: -8500098.397544375
+Iteration: 91, duality measure: 1.959552227913737
+Value: -8500099.965176864
+Iteration: 92, duality measure: 1.861574570621728
+Value: -8500101.454428244
+Iteration: 93, duality measure: 1.7684957960825545
+Value: -8500102.869217277
+Iteration: 94, duality measure: 1.68007096079378
+Value: -8500104.21326751
+Iteration: 95, duality measure: 1.596067366774391
+Value: -8500105.490115589
+Iteration: 96, duality measure: 1.5162639523353945
+Value: -8500106.703121388
+Iteration: 97, duality measure: 1.440450709048466
+Value: -8500107.855477348
+Iteration: 98, duality measure: 1.368428127550756
+Value: -8500108.950215738
+Iteration: 99, duality measure: 1.3000066751541526
+Value: -8500109.990217408
