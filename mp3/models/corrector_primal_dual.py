@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 import wandb
 
 class CorrectorPrimalDualSolver(BaseSolver):
-    def __init__(self, c, A, b, sigma=0.95, use_wandb=False, vis=True, correct=True):
+    def __init__(self, c, A, b, sigma=0.95, separate=True, use_wandb=False, vis=True, correct=True):
         self.c = c
         self.A = A
         self.b = b
+        self.separate = separate
         self.sigma = sigma
         self.history = {
             'values': [],
@@ -54,7 +55,8 @@ class CorrectorPrimalDualSolver(BaseSolver):
             ])
             rhs = np.concatenate([rd, rp, rg])
             # solve deltas = [dx, dy, ds], use pseudo-inverse to avoid singular matrix
-            deltas = np.linalg.pinv(KKT) @ rhs
+            KKT_inv = np.linalg.pinv(KKT)
+            deltas = KKT_inv @ rhs
             delta_x = deltas[:n]
             delta_y = deltas[n:n+m]
             delta_s = deltas[n+m:]
@@ -71,7 +73,7 @@ class CorrectorPrimalDualSolver(BaseSolver):
                 print(f"Delta_X: {np.max(np.abs(Delta_X))}, Delta_S: {np.max(np.abs(Delta_S))}, rg: {np.max(np.abs(rg))}, ratio: {np.max(ratio)}")
                 c_rg = -0.1*ratio*Delta_X @ Delta_S @ np.ones(n) + rg
                 c_rhs = np.concatenate([rd, rp, c_rg])
-                c_deltas = np.linalg.pinv(KKT) @ c_rhs
+                c_deltas = KKT_inv @ c_rhs
                 delta_x = c_deltas[:n]
                 delta_y = c_deltas[n:n+m]
                 delta_s = c_deltas[n+m:]
@@ -80,10 +82,18 @@ class CorrectorPrimalDualSolver(BaseSolver):
             alpha_p = min(1, 0.9 * min(-x[delta_x <= 0] / delta_x[delta_x <= 0])) if np.any(delta_x < 0) else 1
             alpha_d = min(1, 0.9 * min(-s[delta_s <= 0] / delta_s[delta_s <= 0])) if np.any(delta_s < 0) else 1
 
+            if not self.separate:
+                alpha = min(alpha_p, alpha_d)
+
             # Update x, y, s
-            x += alpha_p * delta_x
-            s += alpha_d * delta_s
-            y += alpha_d * delta_y
+            if self.separate:
+                x += alpha_p * delta_x
+                s += alpha_d * delta_s
+                y += alpha_d * delta_y
+            else:
+                x += alpha * delta_x
+                s += alpha * delta_s
+                y += alpha * delta_y
 
             # Check for convergence
             if mu < tol:
@@ -116,6 +126,10 @@ class CorrectorPrimalDualSolver(BaseSolver):
         if self.use_wandb:
             wandb.finish()
         return result
+    
+class CorrectorPrimalDualSolver_NonSep(CorrectorPrimalDualSolver):
+    def __init__(self, c, A, b, sigma=0.95, use_wandb=False, vis=True):
+        super().__init__(c, A, b, sigma, separate=False, use_wandb=use_wandb, vis=vis)
     
 if __name__ == '__main__':
     from utils import generate_problem

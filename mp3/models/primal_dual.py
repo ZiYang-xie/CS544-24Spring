@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import wandb
 
 class PrimalDualSolver(BaseSolver):
-    def __init__(self, c, A, b, sigma=0.95, use_wandb=False, vis=True):
+    def __init__(self, c, A, b, sigma=0.95, separate=True, use_wandb=False, vis=True):
         self.c = c
         self.A = A
         self.b = b
         self.sigma = sigma
+        self.separate = separate
         self.history = {
             'values': [],
             'dual_measures': [],
@@ -60,11 +61,18 @@ class PrimalDualSolver(BaseSolver):
             # Line search parameters for step size
             alpha_p = min(1, 0.9 * min(-x[delta_x <= 0] / delta_x[delta_x <= 0])) if np.any(delta_x < 0) else 1
             alpha_d = min(1, 0.9 * min(-s[delta_s <= 0] / delta_s[delta_s <= 0])) if np.any(delta_s < 0) else 1
+            if not self.separate:
+                alpha = min(alpha_p, alpha_d)
 
             # Update x, y, s
-            x += alpha_p * delta_x
-            s += alpha_d * delta_s
-            y += alpha_d * delta_y
+            if self.separate:
+                x += alpha_p * delta_x
+                s += alpha_d * delta_s
+                y += alpha_d * delta_y
+            else:
+                x += alpha * delta_x
+                s += alpha * delta_s
+                y += alpha * delta_y
 
             # Check for convergence
             if mu < tol:
@@ -98,6 +106,10 @@ class PrimalDualSolver(BaseSolver):
         if self.use_wandb:
             wandb.finish()
         return result
+    
+class PrimalDualSolver_NonSep(PrimalDualSolver):
+    def __init__(self, c, A, b, sigma=0.95, use_wandb=False, vis=True):
+        super().__init__(c, A, b, sigma, separate=False, use_wandb=use_wandb, vis=vis)
     
 if __name__ == '__main__':
     from utils import generate_problem

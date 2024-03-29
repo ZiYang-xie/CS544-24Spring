@@ -5,6 +5,7 @@ import wandb
 from models import MODEL_ZOO
 from utils import generate_problem
 import matplotlib.pyplot as plt
+import numpy as np
 
 def run(args):
     c, A, b = generate_problem(num_eq=args.num_eqs, v_num=args.num_vars)
@@ -16,7 +17,8 @@ def run(args):
         result = model.solve(tol=args.tol, max_iter=args.max_iter)
         print(f"Optimal value: {result['value']}")
         print(f"Optimal x: {result['x']}")
-        print(f"Duality measure: {result['duality_measure']}")
+        if 'duality_measure' in result:
+            print(f"Duality measure: {result['duality_measure']}")
         print("\n\n")
         result_dict[model_name] = result
 
@@ -29,13 +31,15 @@ def run(args):
         for model in result_dict.keys():
             f.write(f'{model}:\n')
             f.write(f'Optimal value: {result_dict[model]["value"]}\n')
-            f.write(f'Duality measure: {result_dict[model]["duality_measure"]}\n')
+            if 'duality_measure' in result_dict[model]:
+                f.write(f'Duality measure: {result_dict[model]["duality_measure"]}\n')
             f.write('\n\n')
 
     # Visualize the results, compare them on the same plot
     if args.vis:
         for model in result_dict.keys():
-            plt.plot(result_dict[model]['value_history'], label=model)
+            values = [-np.log(-v) for v in result_dict[model]['value_history']]
+            plt.plot(values, label=model)
         plt.legend()
         plt.xlabel('Iteration')
         plt.ylabel('Objective Value')
@@ -45,7 +49,8 @@ def run(args):
         plt.cla()
 
         for model in result_dict.keys():
-            plt.plot(result_dict[model]['duality_measure_history'], label=model)
+            if 'duality_measure_history' in result_dict[model]:
+                plt.plot(result_dict[model]['duality_measure_history'], label=model)
         plt.legend()
         plt.xlabel('Iteration')
         plt.ylabel('Duality Measure')
@@ -58,8 +63,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='CS544-24Spring/mp3')
     parser.add_argument('--vis', action='store_true', help='Visualize the optimization process')
     parser.add_argument('--num_vars', type=int, default=30, help='Number of variables')
-    parser.add_argument('--num_eqs', type=int, default=10, help='Number of equations')
-    parser.add_argument('--tol', type=float, default=1e-2, help='Tolerance for convergence')
+    parser.add_argument('--num_eqs', type=int, default=15, help='Number of equations')
+    parser.add_argument('--tol', type=float, default=1e-3, help='Tolerance for convergence')
     parser.add_argument('--max_iter', type=int, default=500, help='Maximum number of iterations')
     parser.add_argument('--wandb', action='store_true', help='Use wandb for logging')
     args = parser.parse_args()
