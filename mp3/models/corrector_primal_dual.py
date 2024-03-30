@@ -122,6 +122,7 @@ class CorrectorPrimalDualSolver(BaseSolver):
             'value_history': self.history['values'],
             'duality_measure': mu,
             'duality_measure_history': self.history['dual_measures'],
+            'rp_norm_history': self.history['rp_norms'],
         }
         if self.use_wandb:
             wandb.finish()

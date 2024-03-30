@@ -2,7 +2,7 @@ import numpy as np
 import z3
 
 def generate_problem(v_num=30, num_eq=10):
-    c = np.random.randn(v_num)
+    c = np.abs(np.random.randn(v_num))
     A = np.random.randn(num_eq, v_num)
     b = np.random.randn(num_eq)
     return c, A, b

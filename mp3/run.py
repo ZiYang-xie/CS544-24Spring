@@ -38,13 +38,23 @@ def run(args):
     # Visualize the results, compare them on the same plot
     if args.vis:
         for model in result_dict.keys():
-            values = [-np.log(-v) for v in result_dict[model]['value_history']]
-            plt.plot(values, label=model)
+            plt.plot(result_dict[model]['value_history'], label=model)
         plt.legend()
         plt.xlabel('Iteration')
         plt.ylabel('Objective Value')
         plt.title('Value Convergence of Different Models')
         plt.savefig(f'./output/res_v{args.num_vars}_e{args.num_eqs}.png')
+        plt.close()
+        plt.cla()
+
+        for model in result_dict.keys():
+            if 'rp_norm_history' in result_dict[model]:
+                plt.plot(result_dict[model]['rp_norm_history'], label=model)
+        plt.legend()
+        plt.xlabel('Iteration')
+        plt.ylabel('Primal Residual Norm')
+        plt.title('Primal Residual Norm Convergence of Different Models')
+        plt.savefig(f'./output/res_v{args.num_vars}_e{args.num_eqs}_primal.png')
         plt.close()
         plt.cla()
 
@@ -64,7 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--vis', action='store_true', help='Visualize the optimization process')
     parser.add_argument('--num_vars', type=int, default=30, help='Number of variables')
     parser.add_argument('--num_eqs', type=int, default=15, help='Number of equations')
-    parser.add_argument('--tol', type=float, default=1e-3, help='Tolerance for convergence')
+    parser.add_argument('--tol', type=float, default=1e-4, help='Tolerance for convergence')
     parser.add_argument('--max_iter', type=int, default=500, help='Maximum number of iterations')
     parser.add_argument('--wandb', action='store_true', help='Use wandb for logging')
     args = parser.parse_args()

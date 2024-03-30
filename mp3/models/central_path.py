@@ -8,7 +8,7 @@ from tqdm import trange
 import wandb
 
 class CentralPathSolver():
-    def __init__(self, c, A, b, t=10, use_wandb=False, vis=True):
+    def __init__(self, c, A, b, t=1, use_wandb=False, vis=True):
         self.c = c
         self.A = A
         self.b = b
@@ -19,12 +19,15 @@ class CentralPathSolver():
             'values': [],
         }
 
-    def solve(self, tol=1e-2, max_iter=5):
+    def solve(self, tol=1e-5, max_iter=100):
         def origin_obj_fn(x):
             return self.c @ x
         
         def barrier_fn(x):
-            return -np.sum(np.log(x))
+            barrier = -np.sum(np.log(x+1e-7))
+            assert not np.isnan(barrier)
+            # barrier = np.inf if np.isnan(barrier) else barrier
+            return barrier
         
         def obj_fn(x):
             return self.t * origin_obj_fn(x) + barrier_fn(x)
@@ -43,9 +46,9 @@ class CentralPathSolver():
     
     def gradient_augmented_lagrangian(self, x):
         fx_grad = self.t * self.c
-        phi_grad = -1/x
-        lambda_grad = -np.sum(self.A * self.lamb[:, None], axis=0)
-        mu_grad = self.mu**2 * (self.A @ x - self.b) @ self.A
+        phi_grad = -1/(x+1e-7)
+        lambda_grad = self.A.T @ self.lamb
+        mu_grad = self.mu * self.A.T @ (self.A @ x - self.b)
         grad = fx_grad + phi_grad + lambda_grad + mu_grad
         return grad
     
@@ -55,22 +58,23 @@ class CentralPathSolver():
         
         def augmented_lagrangian(x):
             L = obj_fn(x)
-            L += -np.sum(self.lamb * (self.A @ x - self.b))
+            L += np.sum(self.lamb * (self.A @ x - self.b))
             L += 0.5 * self.mu * np.linalg.norm(self.A @ x - self.b)**2
             return L
         
         last_x = x0
         self.lamb = np.ones(self.A.shape[0])
-        self.mu = 1 # num_eqs
+        self.mu = 1
         for i in trange(max_iter):
             res = optimize.minimize(
                 augmented_lagrangian, x0, 
                 jac=self.gradient_augmented_lagrangian, 
                 method='L-BFGS-B',
+                bounds=[(0, np.inf) for _ in range(x0.shape[0])],
                 options={'disp': False}
             )
             x0 = res.x
-            self.lamb = self.lamb - self.mu * (self.A @ x0 - self.b)
+            self.lamb = self.lamb + self.mu * (self.A @ x0 - self.b)
             self.mu = 0.9 * self.mu
             print(f"Value: {np.dot(self.c, x0)}")
             self.history['values'].append(np.dot(self.c, x0))
@@ -91,7 +95,7 @@ class CentralPathSolver():
 
 if __name__ == "__main__":
     def generate_problem(v_num=30, num_eq=10):
-        c = np.random.randn(v_num)
+        c = np.abs(np.random.randn(v_num))
         A = np.random.randn(num_eq, v_num)
         b = np.random.randn(num_eq)
         return c, A, b
