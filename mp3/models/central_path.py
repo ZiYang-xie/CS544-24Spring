@@ -8,11 +8,12 @@ from tqdm import trange
 import wandb
 
 class CentralPathSolver():
-    def __init__(self, c, A, b, t=1, use_wandb=False, vis=True):
+    def __init__(self, c, A, b, t=1, update_t=1.2, use_wandb=False, vis=True):
         self.c = c
         self.A = A
         self.b = b
         self.t = t
+        self.update_t = update_t
         self.values = []
         self.vis = vis
         self.history = {
@@ -26,7 +27,6 @@ class CentralPathSolver():
         def barrier_fn(x):
             barrier = -np.sum(np.log(x+1e-7))
             assert not np.isnan(barrier)
-            # barrier = np.inf if np.isnan(barrier) else barrier
             return barrier
         
         def obj_fn(x):
@@ -39,7 +39,7 @@ class CentralPathSolver():
         for i in trange(max_iter):
             results = self.solve_ALM(x, obj_fn)
             x = results['x'] # New initial point
-            self.t = 2*self.t
+            self.t = self.update_t*self.t
             if m/self.t < tol:
                 break
         return results
@@ -52,7 +52,7 @@ class CentralPathSolver():
         grad = fx_grad + phi_grad + lambda_grad + mu_grad
         return grad
     
-    def solve_ALM(self, x0, obj_fn, max_iter=10, tol=1e-7, verbose=True):
+    def solve_ALM(self, x0, obj_fn, max_iter=100, tol=1e-5, verbose=False):
         if verbose:
             print("Starting ALM...")
         
@@ -64,8 +64,8 @@ class CentralPathSolver():
         
         last_x = x0
         self.lamb = np.ones(self.A.shape[0])
-        self.mu = 1
-        for i in trange(max_iter):
+        self.mu = self.t * x0.shape[0]
+        for i in range(max_iter):
             res = optimize.minimize(
                 augmented_lagrangian, x0, 
                 jac=self.gradient_augmented_lagrangian, 
@@ -75,15 +75,14 @@ class CentralPathSolver():
             )
             x0 = res.x
             self.lamb = self.lamb + self.mu * (self.A @ x0 - self.b)
-            self.mu = 0.9 * self.mu
-            print(f"Value: {np.dot(self.c, x0)}")
-            self.history['values'].append(np.dot(self.c, x0))
+            self.mu = 0.99 * self.mu
             if np.linalg.norm(last_x - x0) < tol:
                 if verbose:
                     print(f'Converged at iteration {i}')
                 break
             last_x = x0
-
+        
+            self.history['values'].append(np.dot(self.c, x0))
         result = {
             'x': x0,
             'value': np.dot(self.c, x0),
@@ -95,11 +94,16 @@ class CentralPathSolver():
 
 if __name__ == "__main__":
     def generate_problem(v_num=30, num_eq=10):
-        c = np.abs(np.random.randn(v_num))
+        c = np.random.randn(v_num)
         A = np.random.randn(num_eq, v_num)
         b = np.random.randn(num_eq)
+        # c = np.array([1,1])
+        # A = np.array([[1,-1]])
+        # b = np.array([1])
         return c, A, b
     c, A, b = generate_problem(v_num=30, num_eq=15)
     solver = CentralPathSolver(c, A, b)
-    x = solver.solve()
-    print(x)
+    results = solver.solve()
+    print(results['value'])
+    print(results['x'])
+    print(np.abs(A @ results['x'] - b).mean())

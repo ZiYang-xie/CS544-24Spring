@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='CS544-24Spring/mp3')
     parser.add_argument('--vis', action='store_true', help='Visualize the optimization process')
     parser.add_argument('--num_vars', type=int, default=30, help='Number of variables')
-    parser.add_argument('--num_eqs', type=int, default=15, help='Number of equations')
+    parser.add_argument('--num_eqs', type=int, default=10, help='Number of equations')
     parser.add_argument('--tol', type=float, default=1e-4, help='Tolerance for convergence')
     parser.add_argument('--max_iter', type=int, default=500, help='Maximum number of iterations')
     parser.add_argument('--wandb', action='store_true', help='Use wandb for logging')
