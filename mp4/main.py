@@ -1,5 +1,6 @@
 import gradio as gr
 import cv2
+import imageio
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -14,31 +15,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rich")
 
-def create_graph(img, mask, fg_prob, bg_prob, fgd_label=1, bgd_label=0):
+def create_graph(img, mask, fg_prob, bg_prob, lam=10.0):
     """
     Create a graph for the min-cut segmentation.
     """
     indices = np.arange(img.size // img.shape[2]).reshape(img.shape[:2])
     graph = nx.Graph()
 
+    img = img / 255.
     # Add edges between pixels and source/sink
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
             idx = indices[y, x]
-            if mask[y, x] == fgd_label:
+            if mask[y, x] == 1:
                 graph.add_edge('source', idx, capacity=fg_prob[y,x])
-            elif mask[y, x] == bgd_label:
+            elif mask[y, x] == 0:
                 graph.add_edge(idx, 'sink', capacity=bg_prob[y,x])
 
             if x > 0:  # Left pixel
                 left_idx = indices[y, x - 1]
                 weight = (mask[y,x]!=mask[y,x-1])*np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y, x - 1,:3]) + 1e-6))
                 graph.add_edge(idx, left_idx, capacity=weight)
+
             if y > 0:  # Upper pixel
                 up_idx = indices[y - 1, x]
                 weight = (mask[y,x]!=mask[y - 1, x])*np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x,:3]) + 1e-6))
                 graph.add_edge(idx, up_idx, capacity=weight)
-
     return graph
 
 def segment_image(image, gmm_model, round=5):
@@ -51,12 +53,16 @@ def segment_image(image, gmm_model, round=5):
         logger.info('Round: {}'.format(_))
 
         # Compute the probability of each pixel belonging to the foreground and background
-        fg_prob, bg_prob =  gmm_model['fg'].score_samples(img.reshape(-1, 3)), gmm_model['bg'].score_samples(img.reshape(-1, 3))
+        data_eval = img.reshape(-1, 3) / 255.
+        fg_prob, bg_prob = gmm_model['fg'].score_samples(data_eval), gmm_model['bg'].score_samples(data_eval)
         fg_prob, bg_prob = np.exp(fg_prob), np.exp(bg_prob)
-        mask = (fg_prob > bg_prob)
+        mask = fg_prob > bg_prob
         mask = mask.reshape(img.shape[:2]).astype(np.uint8)
+        
         fg_prob = fg_prob.reshape(img.shape[:2])
         bg_prob = bg_prob.reshape(img.shape[:2])
+        fg_prob = fg_prob / (fg_prob + bg_prob)
+        bg_prob = bg_prob / (fg_prob + bg_prob)
 
         # Create a graph for the min-cut segmentation
         graph = create_graph(img, mask, fg_prob, bg_prob)
@@ -73,8 +79,8 @@ def segment_image(image, gmm_model, round=5):
 
         # Update the GMM model
         mask = mask.astype(bool)
-        fg_data = img[mask]
-        bg_data = img[~mask]
+        fg_data = img[mask] / 255.
+        bg_data = img[~mask] / 255.
         gmm_model['fg'].fit(fg_data)
         gmm_model['bg'].fit(bg_data)
 
@@ -91,8 +97,8 @@ def process(input, max_size=256):
 
     fg_gmm = GaussianMixture(n_components=2, random_state=0)
     bg_gmm = GaussianMixture(n_components=2, random_state=0)
-    fg_data = ori_image[mask]
-    bg_data = ori_image[~mask]
+    fg_data = ori_image[mask] / 255.
+    bg_data = ori_image[~mask] / 255.
     fg_gmm.fit(fg_data)
     bg_gmm.fit(bg_data)
 
