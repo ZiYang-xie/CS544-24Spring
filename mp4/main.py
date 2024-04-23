@@ -31,37 +31,51 @@ def create_graph(img, mask, bgd_label, fgd_label, lam=50):
 
     return graph
 
-def segment_image(image, mask):
+def segment_image(image, mask, round=5):
     img = image
     mask = mask.astype(np.uint8)
 
+    tol = 0.01
+    arc_cut_value = -999999
     # Create a graph
-    print("Creating graph...")
-    graph = create_graph(img, mask, bgd_label=0, fgd_label=1)
-    
-    print('Computing min-cut...')
-    cut_value, partition = nx.minimum_cut(graph, 'source', 'sink')
-    reachable, non_reachable = partition
-    print(f"Cut value: {cut_value}")
+    for _ in range(round):
+        print("Creating graph...")
+        graph = create_graph(img, mask, bgd_label=0, fgd_label=1)
+        
+        print('Computing min-cut...')
+        cut_value, partition = nx.minimum_cut(graph, 'source', 'sink')
+        reachable, non_reachable = partition
+        print(f"Cut value: {cut_value}")
 
-    segmented_img = np.zeros(img.shape, dtype=np.uint8)
-    for segment in reachable:
-        if segment != 'source':
-            y, x = np.divmod(segment, img.shape[1])
-            segmented_img[y, x] = img[y, x]
+        # Update the mask
+        mask = np.zeros_like(mask)
+        for segment in reachable:
+            if segment != 'source':
+                y, x = np.divmod(segment, img.shape[1])
+                mask[y, x] = 1
 
-    return segmented_img
+        if abs(cut_value - arc_cut_value) < tol:
+            break
 
-def process(input, max_size=512):
-    #  Resize the longest edge to 512
-    image = input['background']
+        arc_cut_value = cut_value
+
+    return mask
+
+def process(input, max_size=256):
+    ori_image = input['background']
     mask = input['layers'][0][:,:,-1]>0
 
-    if max(image.shape[:2]) > max_size:
-        scale = max_size / max(image.shape[:2])
-        image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
+    if max(ori_image.shape[:2]) > max_size:
+        scale = max_size / max(ori_image.shape[:2])
+        image = cv2.resize(ori_image, (0, 0), fx=scale, fy=scale)
         mask = cv2.resize(mask.astype(np.uint8), (0, 0), fx=scale, fy=scale) > 0
-    segmented_image = segment_image(image, mask)
+    refined_mask = segment_image(image, mask)
+    mask = cv2.resize(refined_mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+    segmented_image = ori_image.copy()
+    segmented_image[mask] = np.concatenate([segmented_image[mask][:,:3], 
+                                            128*np.ones((segmented_image[mask].shape[0], 1), 
+                                            dtype=np.uint8)], axis=1)
+
     return segmented_image
 
 if __name__ == "__main__":
@@ -69,9 +83,10 @@ if __name__ == "__main__":
     iface = gr.Interface(
         fn=process,
         inputs=gr.ImageMask(image_mode='RGBA', sources=['upload']),
-        outputs=gr.Image(),
+        outputs=gr.Image(image_mode='RGBA'),
         title="Interactive Image Segmentation",
-        description="Draw on the image to mark the foreground in red and the background in blue, then see the segmentation results."
+        description="Draw on the image to mark the foreground",
+        allow_flagging=False
     )
 
     iface.launch()
