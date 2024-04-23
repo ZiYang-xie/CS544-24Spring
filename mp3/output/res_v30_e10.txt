@@ -1,13 +1,11 @@
-centeral_path_1.2:
-Optimal value: 1.9470994507341155
+centeral_path:
+Optimal value: 1.603482643225663
+Elapsed time: 0.2982759475708008
 
 
 primal_dual:
-Optimal value: 1.9493579556294622
-Duality measure: 9.931927413807334e-05
-
-
-centeral_path_1.5:
-Optimal value: 1.948249343549061
+Optimal value: 1.604766400257252
+Duality measure: 2.5475657025248604e-06
+Elapsed time: 0.0242769718170166
 
 

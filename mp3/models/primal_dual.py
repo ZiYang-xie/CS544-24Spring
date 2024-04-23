@@ -1,11 +1,13 @@
 import numpy as np
+import scipy
 from .base import BaseSolver
 
 import matplotlib.pyplot as plt
 import wandb
+from time import time
 
 class PrimalDualSolver(BaseSolver):
-    def __init__(self, c, A, b, sigma=0.95, separate=True, use_wandb=False, vis=True):
+    def __init__(self, c, A, b, sigma=0.5, separate=True, use_wandb=False, vis=True):
         self.c = c
         self.A = A
         self.b = b
@@ -16,6 +18,7 @@ class PrimalDualSolver(BaseSolver):
             'dual_measures': [],
             'rp_norms': [],
             'rd_norms': [],
+            'timestamps': [],
         }
         self.vis = vis
         self.use_wandb = use_wandb
@@ -52,7 +55,7 @@ class PrimalDualSolver(BaseSolver):
                 [S, np.zeros((n, m)), X]
             ])
             rhs = np.concatenate([rd, rp, rg])
-            # solve deltas = [dx, dy, ds], use pseudo-inverse to avoid singular matrix
+            # solve deltas = [dx, dy, ds], use pinv
             deltas = np.linalg.pinv(KKT) @ rhs
             delta_x = deltas[:n]
             delta_y = deltas[n:n+m]
@@ -92,6 +95,7 @@ class PrimalDualSolver(BaseSolver):
             self.history['dual_measures'].append(mu)
             self.history['rp_norms'].append(np.linalg.norm(rp))
             self.history['rd_norms'].append(np.linalg.norm(rd))
+            self.history['timestamps'].append(time())
 
 
         result = {
@@ -103,6 +107,7 @@ class PrimalDualSolver(BaseSolver):
             'duality_measure': mu,
             'duality_measure_history': self.history['dual_measures'],
             'rp_norm_history': self.history['rp_norms'],
+            'timestamps': self.history['timestamps'],
         }
         if self.use_wandb:
             wandb.finish()

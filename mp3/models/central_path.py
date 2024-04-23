@@ -5,10 +5,11 @@ from scipy.sparse.linalg import cg
 from tqdm import trange
 # from .base import BaseSolver
 
+from time import time
 import wandb
 
 class CentralPathSolver():
-    def __init__(self, c, A, b, t=1, update_t=1.2, use_wandb=False, vis=True):
+    def __init__(self, c, A, b, t=1, update_t=1000, use_wandb=False, vis=True):
         self.c = c
         self.A = A
         self.b = b
@@ -18,6 +19,7 @@ class CentralPathSolver():
         self.vis = vis
         self.history = {
             'values': [],
+            'timestamps': [],
         }
 
     def solve(self, tol=1e-5, max_iter=100):
@@ -63,7 +65,7 @@ class CentralPathSolver():
             return L
         
         last_x = x0
-        self.lamb = np.ones(self.A.shape[0])
+        self.lamb = self.t * np.ones(self.A.shape[0])
         self.mu = self.t * x0.shape[0]
         for i in range(max_iter):
             res = optimize.minimize(
@@ -83,10 +85,12 @@ class CentralPathSolver():
             last_x = x0
         
             self.history['values'].append(np.dot(self.c, x0))
+            self.history['timestamps'].append(time())
         result = {
             'x': x0,
             'value': np.dot(self.c, x0),
             'value_history': self.history['values'],
+            'timestamps': self.history['timestamps']
         }
             
         return result

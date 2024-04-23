@@ -10,11 +10,10 @@ def build_cp_variants(update_t):
     return CentralPathSolver_t
 
 MODEL_ZOO = {
-    'centeral_path_1.2': build_cp_variants(1.2),
+    'centeral_path': CentralPathSolver,
     # **{f'centeral_path_{t}': build_cp_variants(t) for t in [1.1, 1.2, 1.3, 1.4, 1.5]},
     'primal_dual': PrimalDualSolver,
-    'centeral_path_1.5': build_cp_variants(1.5),
     # 'primal_dual_nosep': PrimalDualSolver_NonSep,
     # 'corrector_primal_dual': CorrectorPrimalDualSolver,
-    # 'corrector_primal_dual_sep': CorrectorPrimalDualSolver_NonSep
+    # 'corrector_primal_dual_nosep': CorrectorPrimalDualSolver_NonSep
 }

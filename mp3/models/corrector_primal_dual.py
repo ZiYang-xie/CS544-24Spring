@@ -71,7 +71,7 @@ class CorrectorPrimalDualSolver(BaseSolver):
                 ratio = abs_rg / abs_Delta
                 
                 print(f"Delta_X: {np.max(np.abs(Delta_X))}, Delta_S: {np.max(np.abs(Delta_S))}, rg: {np.max(np.abs(rg))}, ratio: {np.max(ratio)}")
-                c_rg = -0.1*ratio*Delta_X @ Delta_S @ np.ones(n) + rg
+                c_rg = -0.5*ratio*Delta_X @ Delta_S @ np.ones(n) + rg
                 c_rhs = np.concatenate([rd, rp, c_rg])
                 c_deltas = KKT_inv @ c_rhs
                 delta_x = c_deltas[:n]

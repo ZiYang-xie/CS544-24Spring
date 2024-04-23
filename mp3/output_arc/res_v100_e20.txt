@@ -1,0 +1,10 @@
+primal_dual:
+Optimal value: 1.3152104081387452
+Duality measure: 9.929599555820829e-05
+
+
+primal_dual_nosep:
+Optimal value: 1.3150573224001378
+Duality measure: 9.728794688032593e-05
+
+
