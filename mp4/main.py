@@ -5,6 +5,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
+from scipy.ndimage import distance_transform_edt
 
 import logging
 from rich.logging import RichHandler
@@ -15,7 +16,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rich")
 
-def create_graph(img, mask, fg_prob, bg_prob, lam=10.0):
+def find_nearest_value_dist(matrix, value):
+    matrix = np.array(matrix)
+    target_positions = (matrix == value)
+    distances = distance_transform_edt(~target_positions)
+    distances = np.round(distances).astype(int)
+    return distances
+
+def create_graph(img, mask, fg_prob, bg_prob):
     """
     Create a graph for the min-cut segmentation.
     """
@@ -23,14 +31,21 @@ def create_graph(img, mask, fg_prob, bg_prob, lam=10.0):
     graph = nx.Graph()
 
     img = img / 255.
+    fg_dist = find_nearest_value_dist(mask, 1)
+    bg_dist = find_nearest_value_dist(mask, 0)
+
+    H, W = img.shape[:2]
+    fg_dist = fg_dist / max(H, W)
+    bg_dist = bg_dist / max(H, W)
+
     # Add edges between pixels and source/sink
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
             idx = indices[y, x]
             if mask[y, x] == 1:
-                graph.add_edge('source', idx, capacity=fg_prob[y,x])
+                graph.add_edge('source', idx, capacity=fg_prob[y,x]+50*fg_dist[y,x])
             elif mask[y, x] == 0:
-                graph.add_edge(idx, 'sink', capacity=bg_prob[y,x])
+                graph.add_edge(idx, 'sink', capacity=bg_prob[y,x]+50*bg_dist[y,x])
 
             if x > 0:  # Left pixel
                 left_idx = indices[y, x - 1]
