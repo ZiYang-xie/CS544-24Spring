@@ -143,12 +143,21 @@ def process(input, max_size=256):
     masks = masks.astype(np.uint8)
     refined_masks = segment_image(image, masks)
     import pdb; pdb.set_trace()
-    mask = refined_masks[-1]
-    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
 
     segmented_image = input['background'].copy()
+    mask = refined_masks[-1]
+    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
     segmented_image[mask] = np.concatenate([segmented_image[mask][:,:3], 
                                             32*np.ones((segmented_image[mask].shape[0], 1), dtype=np.uint8)], axis=1)
+    mask = refined_masks[-2]
+    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+    # apply a red tint to the mask
+    segmented_image[mask] += np.array([0, 0, 32, 0], dtype=np.uint8)
+    mask = refined_masks[-3]
+    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+    # apply a blue tint to the mask
+    segmented_image[mask] += np.array([0, 32, 0, 0], dtype=np.uint8)
+
 
     # Define colors for each mask
     # num_masks = masks.shape[0]  # Assuming masks is a numpy array with shape (num_masks, height, width)
