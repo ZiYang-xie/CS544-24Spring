@@ -9,6 +9,7 @@ from scipy.ndimage import distance_transform_edt
 
 import logging
 from rich.logging import RichHandler
+import pdb
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -56,60 +57,75 @@ def create_graph(img, mask, fg_prob, bg_prob, lam=1):
                 graph.add_edge(idx, up_idx, capacity=weight)
     return graph
 
-def segment_image(image, masks, round=5):
+def segment_image(image, masks, round=1):
     img = image
     tol = 1e-7
     arc_cut_value = -1e-9
 
+    bg_mask = np.all(masks == 0, axis=0)
+    masks = np.concatenate([masks, bg_mask[np.newaxis, ...]], axis=0)
+    masks = masks.astype(bool)
     fg_gmm = GaussianMixture(n_components=2, random_state=0)
     bg_gmm = GaussianMixture(n_components=2, random_state=0)
 
-    for index in range(masks.shape[0]):
-        source_mask = masks[index]
-        for _ in range(round): 
-            logger.info('Round: {}'.format(_))
+    for iter in range(masks.shape[0] * round):
+        sc_layer_idx = iter % masks.shape[0]
+        mask = masks[sc_layer_idx].copy()
+        logger.info('Round: {}'.format(sc_layer_idx))
 
-            fg_data = image[source_mask] / 255.
-            bg_data = image[~source_mask] / 255.
-            fg_gmm.fit(fg_data)
-            bg_gmm.fit(bg_data)
+        # pdb.set_trace()
 
-            # Compute the probability of each pixel belonging to the foreground and background
-            data_eval = img.reshape(-1, 3) / 255.
-            fg_prob, bg_prob = fg_gmm.score_samples(data_eval), bg_gmm.score_samples(data_eval)
-            
-            fg_prob = fg_prob.reshape(img.shape[:2])
-            bg_prob = bg_prob.reshape(img.shape[:2])
-            fg_prob = (fg_prob - np.min(fg_prob)) / (np.max(fg_prob) - np.min(fg_prob))
-            bg_prob = (bg_prob - np.min(bg_prob)) / (np.max(bg_prob) - np.min(bg_prob))
-            fg_prob, bg_prob = np.exp(fg_prob), np.exp(bg_prob)
 
-            # Create a graph for the min-cut segmentation
-            graph = create_graph(img, source_mask, fg_prob, bg_prob)
-            cut_value, partition = nx.minimum_cut(graph, 'source', 'sink')
-            reachable, non_reachable = partition
-            logger.info(f"Cut value: {cut_value}")
+        fg_data = image[mask] / 255.
+        bg_data = image[~mask] / 255.
+        fg_gmm.fit(fg_data)
+        bg_gmm.fit(bg_data)
 
-            # Update the mask
-            source_mask = np.zeros_like(source_mask)
-            for segment in reachable:
-                if segment != 'source':
-                    y, x = np.divmod(segment, img.shape[1])
-                    source_mask[y, x] = 1
+        # Compute the probability of each pixel belonging to the foreground and background
+        data_eval = img.reshape(-1, 3) / 255.
+        fg_prob, bg_prob = fg_gmm.score_samples(data_eval), bg_gmm.score_samples(data_eval)
+        
+        fg_prob = fg_prob.reshape(img.shape[:2])
+        bg_prob = bg_prob.reshape(img.shape[:2])
+        fg_prob = (fg_prob - np.min(fg_prob)) / (np.max(fg_prob) - np.min(fg_prob))
+        bg_prob = (bg_prob - np.min(bg_prob)) / (np.max(bg_prob) - np.min(bg_prob))
+        fg_prob, bg_prob = np.exp(fg_prob), np.exp(bg_prob)
 
-            # Update the GMM model
-            source_mask = source_mask.astype(bool)
-            fg_data = img[source_mask] / 255.
-            bg_data = img[~source_mask] / 255.
-            fg_gmm.fit(fg_data)
-            bg_gmm.fit(bg_data)
+        # Create a graph for the min-cut segmentation
+        graph = create_graph(img, mask, fg_prob, bg_prob)
+        cut_value, partition = nx.minimum_cut(graph, 'source', 'sink')
+        reachable, non_reachable = partition
+        logger.info(f"Cut value: {cut_value}")
 
-            if abs(cut_value - arc_cut_value) < tol:
-                break
-            arc_cut_value = cut_value
+        # Update the mask
+        mask = np.zeros_like(mask)
+        for segment in reachable:
+            if segment != 'source':
+                y, x = np.divmod(segment, img.shape[1])
+                mask[y, x] = 1
+
+        # Update the GMM model
+        # mask = mask.astype(bool)
+        # fg_data = img[mask] / 255.
+        # bg_data = img[~mask] / 255.
+        # fg_gmm.fit(fg_data)
+        # bg_gmm.fit(bg_data)
+
+        # Update masks
+        for layer_idx in range(masks.shape[0]):
+            if layer_idx == sc_layer_idx:
+                masks[layer_idx] = mask  # Just copy the mask
+            else:
+                masks[layer_idx] = masks[layer_idx] & (~mask | masks[layer_idx])  # Entry-wise operation
+
+        if abs(cut_value - arc_cut_value) < tol:
+            break
+        arc_cut_value = cut_value
+
+
 
     logger.info('Segmentation done.')
-    return mask
+    return masks
 
 def process(input, max_size=256):
     ori_image = input['background'][:,:,:3]
@@ -125,12 +141,27 @@ def process(input, max_size=256):
         masks = np.array(resized_masks)
 
     masks = masks.astype(np.uint8)
-    refined_mask = segment_image(image, masks)
+    refined_masks = segment_image(image, masks)
     import pdb; pdb.set_trace()
-    mask = cv2.resize(refined_mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+    mask = refined_masks[-1]
+    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+
     segmented_image = input['background'].copy()
     segmented_image[mask] = np.concatenate([segmented_image[mask][:,:3], 
                                             32*np.ones((segmented_image[mask].shape[0], 1), dtype=np.uint8)], axis=1)
+
+    # Define colors for each mask
+    # num_masks = masks.shape[0]  # Assuming masks is a numpy array with shape (num_masks, height, width)
+    # colors = np.random.randint(0, 256, size=(num_masks, 3), dtype=np.uint8)  # Generate random colors for each mask
+
+    # Iterate over each mask and assign a different color
+    # for i in range(num_masks):
+    #     mask = masks[i]
+    #     mask = mask.astype(bool)
+    #     color = colors[i]
+    #     segmented_image[mask] = color
+    # segmented_image = np.concatenate([segmented_image, 32*np.ones((segmented_image.shape[0], segmented_image.shape[1], 1), dtype=np.uint8)], axis=2)    
+        
     return segmented_image
 
 if __name__ == "__main__":

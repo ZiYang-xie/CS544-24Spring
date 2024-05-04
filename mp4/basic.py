@@ -38,22 +38,52 @@ def create_graph(img, mask, fg_prob, bg_prob, lam=1):
     fg_dist = 1 - fg_dist / max(H, W)
     bg_dist = 1 - bg_dist / max(H, W)
 
+    unary_cost = []
+    binary_cost = []
+
+    gamma = 20.0
+    cnst = 0.1
+
     # Add edges between pixels and source/sink
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
             idx = indices[y, x]
-            graph.add_edge('source', idx, capacity=fg_prob[y,x] + lam*fg_dist[y,x])
-            graph.add_edge(idx, 'sink', capacity=bg_prob[y,x] + lam*bg_dist[y,x])
+            capacity=fg_prob[y,x] # + lam*fg_dist[y,x]
+            graph.add_edge('source', idx, capacity=capacity)
+            unary_cost.append(capacity)
+            capacity=bg_prob[y,x] # + lam*bg_dist[y,x]
+            graph.add_edge(idx, 'sink', capacity=capacity)
+            unary_cost.append(capacity)
 
             if x > 0:  # Left pixel
                 left_idx = indices[y, x - 1]
-                weight = (mask[y,x]!=mask[y,x-1])*np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y, x - 1,:3]) + 1e-6))
+                weight = (mask[y,x]!=mask[y,x-1])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y, x - 1,:3]) + 1e-6)) + cnst
                 graph.add_edge(idx, left_idx, capacity=weight)
-
+                binary_cost.append(weight)
+                
             if y > 0:  # Upper pixel
                 up_idx = indices[y - 1, x]
-                weight = (mask[y,x]!=mask[y - 1, x])*np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x,:3]) + 1e-6))
+                weight = (mask[y,x]!=mask[y - 1, x])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x,:3]) + 1e-6)) + cnst
                 graph.add_edge(idx, up_idx, capacity=weight)
+                binary_cost.append(weight)
+            
+            if x > 0 and y > 0:  # Upper-left pixel
+                up_left_idx = indices[y - 1, x - 1]
+                weight = (mask[y,x]!=mask[y - 1, x - 1])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x - 1,:3]) + 1e-6)) / np.sqrt(2) + cnst
+                graph.add_edge(idx, up_left_idx, capacity=weight)
+                binary_cost.append(weight)
+            
+            if x < img.shape[1]-1 and y > 0:  # Upper-right pixel
+                up_right_idx = indices[y - 1, x + 1]
+                weight = (mask[y,x]!=mask[y - 1, x + 1])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x + 1,:3]) + 1e-6)) / np.sqrt(2) + cnst
+                graph.add_edge(idx, up_right_idx, capacity=weight)
+                binary_cost.append(weight)
+            
+
+    logger.info(f"Unary Mean: {np.mean(unary_cost)}")
+    logger.info(f"Unary Std: {np.std(unary_cost)}")
+    logger.info(f"Binary Mean: {np.mean(binary_cost)}")
+    logger.info(f"Binary Std: {np.std(binary_cost)}")
     return graph
 
 def segment_image(image, mask, gmm_model, round=5):
