@@ -23,7 +23,7 @@ def find_nearest_value_dist(matrix, value):
     distances = np.round(distances).astype(int)
     return distances
 
-def create_graph(img, mask, fg_prob, bg_prob):
+def create_graph(img, mask, fg_prob, bg_prob, lam=1):
     """
     Create a graph for the min-cut segmentation.
     """
@@ -35,17 +35,15 @@ def create_graph(img, mask, fg_prob, bg_prob):
     bg_dist = find_nearest_value_dist(mask, 0)
 
     H, W = img.shape[:2]
-    fg_dist = fg_dist / max(H, W)
-    bg_dist = bg_dist / max(H, W)
+    fg_dist = 1 - fg_dist / max(H, W)
+    bg_dist = 1 - bg_dist / max(H, W)
 
     # Add edges between pixels and source/sink
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
             idx = indices[y, x]
-            if mask[y, x] == 1:
-                graph.add_edge('source', idx, capacity=fg_prob[y,x]+50*fg_dist[y,x])
-            elif mask[y, x] == 0:
-                graph.add_edge(idx, 'sink', capacity=bg_prob[y,x]+50*bg_dist[y,x])
+            graph.add_edge('source', idx, capacity=fg_prob[y,x] + lam*fg_dist[y,x])
+            graph.add_edge(idx, 'sink', capacity=bg_prob[y,x] + lam*bg_dist[y,x])
 
             if x > 0:  # Left pixel
                 left_idx = indices[y, x - 1]
@@ -58,26 +56,24 @@ def create_graph(img, mask, fg_prob, bg_prob):
                 graph.add_edge(idx, up_idx, capacity=weight)
     return graph
 
-def segment_image(image, gmm_model, round=5):
+def segment_image(image, mask, gmm_model, round=5):
     img = image
 
     tol = 1e-7
-    arc_cut_value = -999999
+    arc_cut_value = -1e-9
     # Create a graph
-    for _ in range(round):
+    for _ in range(round): 
         logger.info('Round: {}'.format(_))
 
         # Compute the probability of each pixel belonging to the foreground and background
         data_eval = img.reshape(-1, 3) / 255.
         fg_prob, bg_prob = gmm_model['fg'].score_samples(data_eval), gmm_model['bg'].score_samples(data_eval)
-        fg_prob, bg_prob = np.exp(fg_prob), np.exp(bg_prob)
-        mask = fg_prob > bg_prob
-        mask = mask.reshape(img.shape[:2]).astype(np.uint8)
         
         fg_prob = fg_prob.reshape(img.shape[:2])
         bg_prob = bg_prob.reshape(img.shape[:2])
-        fg_prob = fg_prob / (fg_prob + bg_prob)
-        bg_prob = bg_prob / (fg_prob + bg_prob)
+        fg_prob = (fg_prob - np.min(fg_prob)) / (np.max(fg_prob) - np.min(fg_prob))
+        bg_prob = (bg_prob - np.min(bg_prob)) / (np.max(bg_prob) - np.min(bg_prob))
+        fg_prob, bg_prob = np.exp(fg_prob), np.exp(bg_prob)
 
         # Create a graph for the min-cut segmentation
         graph = create_graph(img, mask, fg_prob, bg_prob)
@@ -128,7 +124,8 @@ def process(input, max_size=256):
         image = cv2.resize(ori_image, (0, 0), fx=scale, fy=scale)
         mask = cv2.resize(mask.astype(np.uint8), (0, 0), fx=scale, fy=scale) > 0
 
-    refined_mask = segment_image(image, gmm_model=gmm_model)
+    mask = mask.astype(np.uint8)
+    refined_mask = segment_image(image, mask, gmm_model=gmm_model)
     mask = cv2.resize(refined_mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
     segmented_image = input['background'].copy()
     segmented_image[mask] = np.concatenate([segmented_image[mask][:,:3], 
