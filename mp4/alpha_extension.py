@@ -4,6 +4,7 @@ import imageio
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from PIL import Image
 from sklearn.mixture import GaussianMixture
 from scipy.ndimage import distance_transform_edt
 
@@ -142,35 +143,24 @@ def process(input, max_size=256):
 
     masks = masks.astype(np.uint8)
     refined_masks = segment_image(image, masks)
-    import pdb; pdb.set_trace()
 
     segmented_image = input['background'].copy()
     mask = refined_masks[-1]
-    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
+    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 1
     segmented_image[mask] = np.concatenate([segmented_image[mask][:,:3], 
                                             32*np.ones((segmented_image[mask].shape[0], 1), dtype=np.uint8)], axis=1)
-    mask = refined_masks[-2]
-    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
-    # apply a red tint to the mask
-    segmented_image[mask] += np.array([0, 0, 32, 0], dtype=np.uint8)
-    mask = refined_masks[-3]
-    mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 0
-    # apply a blue tint to the mask
-    segmented_image[mask] += np.array([0, 32, 0, 0], dtype=np.uint8)
+    
+    obj_masks = refined_masks[:-1]
+    cmap = plt.cm.get_cmap('turbo', len(obj_masks))
 
+    for i, mask in enumerate(obj_masks):
+        overlay = Image.new("RGBA", ori_image.shape[:2][::-1], (int(255*cmap(i)[0]), int(255*cmap(i)[1]), int(255*cmap(i)[2]), 64))
+        overlay = cv2.resize(np.array(overlay), ori_image.shape[:2][::-1])
+        mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 1
+        overlay[~mask] = 0
+        segmented_image = Image.alpha_composite(Image.fromarray(segmented_image), Image.fromarray(overlay))
+        segmented_image = np.array(segmented_image)
 
-    # Define colors for each mask
-    # num_masks = masks.shape[0]  # Assuming masks is a numpy array with shape (num_masks, height, width)
-    # colors = np.random.randint(0, 256, size=(num_masks, 3), dtype=np.uint8)  # Generate random colors for each mask
-
-    # Iterate over each mask and assign a different color
-    # for i in range(num_masks):
-    #     mask = masks[i]
-    #     mask = mask.astype(bool)
-    #     color = colors[i]
-    #     segmented_image[mask] = color
-    # segmented_image = np.concatenate([segmented_image, 32*np.ones((segmented_image.shape[0], segmented_image.shape[1], 1), dtype=np.uint8)], axis=2)    
-        
     return segmented_image
 
 if __name__ == "__main__":
