@@ -128,7 +128,7 @@ def segment_image(image, masks, round=1):
     logger.info('Segmentation done.')
     return masks
 
-def process(input, max_size=256):
+def process(input, max_size=512, save_input_mask=True):
     ori_image = input['background'][:,:,:3]
     masks = np.array(input['layers'])[...,-1]>0
 
@@ -142,6 +142,14 @@ def process(input, max_size=256):
         masks = np.array(resized_masks)
 
     masks = masks.astype(np.uint8)
+    if save_input_mask:
+        vis_mask = np.any(masks, axis=0).astype(np.uint8)
+        vis_mask = cv2.resize(vis_mask, ori_image.shape[:2][::-1]) 
+        vis_image = input['background'].copy()
+        vis_image[vis_mask>0] = np.concatenate([vis_image[vis_mask>0][:,:3], 
+                                            128*np.ones((vis_image[vis_mask>0].shape[0], 1), dtype=np.uint8)], axis=1)
+        imageio.imwrite('input_mask.png', vis_image)
+    
     refined_masks = segment_image(image, masks)
 
     segmented_image = input['background'].copy()
