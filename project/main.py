@@ -17,7 +17,7 @@ class TestBench():
 
     def train(self):
         print("Training the model")
-        # self.kan.train(self.dataset, self.config['optimizer']['name'])
+        self.kan.train(self.dataset, self.config['optimizer']['name'])
         self.mlp.train(self.dataset,
                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()))
         

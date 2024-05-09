@@ -27,8 +27,8 @@ class MLPModel(BaseModel):
                 for i in range(len(width)-1)]
             )
 
-    def train(self, dataset, opt):
-        for i in range(100):
+    def train(self, dataset, opt, iter=100):
+        for _ in range(iter):
             opt.zero_grad()
             pred = self.model(dataset['train_input'])
             loss = F.mse_loss(pred, dataset['train_label'])

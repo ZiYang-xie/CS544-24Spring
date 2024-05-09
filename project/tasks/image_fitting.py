@@ -35,12 +35,12 @@ class ImageFitting:
         # Shuffle the dataset
         idx = np.arange(input.shape[0])
         np.random.shuffle(idx)
-        input = input[idx]
-        output = output[idx]
+        shuffled_input = input[idx]
+        shuffled_output = output[idx]
 
         dataset = {
-            'train_input': input,
-            'train_label': output,
+            'train_input': shuffled_input,
+            'train_label': shuffled_output,
             'test_input': input,
             'test_label': output
         }
