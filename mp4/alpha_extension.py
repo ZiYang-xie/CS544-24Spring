@@ -159,10 +159,10 @@ def process(input, max_size=512, save_input_mask=True):
                                             32*np.ones((segmented_image[mask].shape[0], 1), dtype=np.uint8)], axis=1)
     
     obj_masks = refined_masks[:-1]
-    cmap = plt.cm.get_cmap('turbo', len(obj_masks))
+    cmap = plt.cm.get_cmap('Set2', obj_masks.shape[0])
 
     for i, mask in enumerate(obj_masks):
-        overlay = Image.new("RGBA", ori_image.shape[:2][::-1], (int(255*cmap(i)[0]), int(255*cmap(i)[1]), int(255*cmap(i)[2]), 64))
+        overlay = Image.new("RGBA", ori_image.shape[:2][::-1], (int(255*cmap(i)[0]), int(255*cmap(i)[1]), int(255*cmap(i)[2]), 128))
         overlay = cv2.resize(np.array(overlay), ori_image.shape[:2][::-1])
         mask = cv2.resize(mask.astype(np.uint8), ori_image.shape[:2][::-1]) == 1
         overlay[~mask] = 0

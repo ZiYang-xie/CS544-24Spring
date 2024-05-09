@@ -1,42 +1,40 @@
 import argparse
-import imageio
-import os
-from utils import read_hdr_image, write_hdr_image, display_hdr_image
+from models import KANModel, MLPModel
+from utils import read_config
+from tasks import TASKS
+from optimizers import build_optimizer
 
-
-class LDR2HDR:
+class TestBench():
     def __init__(self, args):
-        self.data_path = args.data_path
-        self.index = args.index
-        self.hdr_image = self.read_hdr_image()
-        self.ldr_images = self.read_ldr_images()
+        self.config = read_config(args.config)
+        
+        self.task = TASKS[self.config['task']](**self.config['data'])
+        self.dataset = self.task.create_dataset()
 
-    def read_hdr_image(self):
-        im_hdr = read_hdr_image(self.data_path + '/HDR/' + f'HDR_{int(self.index):03d}' + '.hdr')
-        # display_hdr_image(im_hdr)
-        return im_hdr
-
-    def read_ldr_images(self):
-        images = []
-        for path in os.listdir(self.data_path):
-            if 'LDR' not in path:
-                continue
-            ldr_path = self.data_path + f'/{path}/LDR_{int(self.index):03d}.jpg'
-            ldr_image = imageio.imread(ldr_path)    
-            images.append(ldr_image)
-        return images
+        self.kan = KANModel(**self.config['KAN'])
+        self.mlp = MLPModel(**self.config['MLP'])
 
 
+    def train(self):
+        print("Training the model")
+        # self.kan.train(self.dataset, self.config['optimizer']['name'])
+        self.mlp.train(self.dataset,
+                       build_optimizer(self.config['optimizer'], self.mlp.model.parameters()))
+        
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Display HDR image')
-    parser.add_argument('--index', type=int, help='Index of the image to process')
-    parser.add_argument('--data_path', type=str, default='./LDR-HDR-pair_Dataset')
+    def test(self):
+        print("Testing the model")
+        self.task.test(self.mlp, self.dataset)
+
+    def run(self):
+        self.train()
+        self.test()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='MLP vs Kan Experiment')
+    parser.add_argument('--config', type=str, help='path to config file')
     args = parser.parse_args()
 
-    ldr_converter = LDR2HDR(args)
-
-
-
-
-
+    tb = TestBench(args)
+    tb.run()

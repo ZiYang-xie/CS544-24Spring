@@ -1,0 +1,22 @@
+task: 'image_fitting'
+
+data:
+  path: ./data/image_fitting/fox.png
+
+
+optimizer:
+  name: 'Adam'
+  lr: 0.001
+  max_iter: 1000
+  history_size: 10
+  line_search_fn: "strong_wolfe"
+
+MLP:
+  width: [512,256,64,3]
+  act: 'relu'
+  dropout: 0
+
+KAN:
+  width: [64,32,16,3]
+  grid: 5
+  k: 3
