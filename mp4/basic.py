@@ -23,7 +23,7 @@ def find_nearest_value_dist(matrix, value):
     distances = np.round(distances).astype(int)
     return distances
 
-def create_graph(img, mask, fg_prob, bg_prob, lam=1):
+def create_graph(img, mask, fg_prob, bg_prob, neighbors=8, lam=1):
     """
     Create a graph for the min-cut segmentation.
     """
@@ -67,13 +67,13 @@ def create_graph(img, mask, fg_prob, bg_prob, lam=1):
                 graph.add_edge(idx, up_idx, capacity=weight)
                 binary_cost.append(weight)
             
-            if x > 0 and y > 0:  # Upper-left pixel
+            if neighbors==8 and x > 0 and y > 0:  # Upper-left pixel
                 up_left_idx = indices[y - 1, x - 1]
                 weight = (mask[y,x]!=mask[y - 1, x - 1])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x - 1,:3]) + 1e-6)) / np.sqrt(2) + cnst
                 graph.add_edge(idx, up_left_idx, capacity=weight)
                 binary_cost.append(weight)
             
-            if x < img.shape[1]-1 and y > 0:  # Upper-right pixel
+            if neighbors==8 and x < img.shape[1]-1 and y > 0:  # Upper-right pixel
                 up_right_idx = indices[y - 1, x + 1]
                 weight = (mask[y,x]!=mask[y - 1, x + 1])*gamma *np.exp(-1.0*(np.linalg.norm(img[y, x,:3] - img[y - 1, x + 1,:3]) + 1e-6)) / np.sqrt(2) + cnst
                 graph.add_edge(idx, up_right_idx, capacity=weight)
