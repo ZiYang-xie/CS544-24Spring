@@ -6,16 +6,18 @@ import numpy as np
 import torch.nn.functional as F
 
 class ImageFitting:
-    def __init__(self, path, resize=512):
+    def __init__(self, path, resize=64):
         self.path = path
         self.image = imageio.imread(path)[:, :, :3]
         H, W = self.image.shape[:2]
         self.image = cv2.resize(self.image, (int(resize*W/H), resize) if H > W else (resize, int(resize*H/W)))
+        # save the image to a file
+        imageio.imsave("input.png", self.image)
         self.image = self.image / 255.0
         
         random.seed(42)
 
-    def input_mapping(self, input, scale=10.0, mapping_size=256):
+    def input_mapping(self, input, scale=10.0, mapping_size=64):
         B = np.random.normal(0, 1, (mapping_size, input.shape[1])) * scale
         x_proj = (2.*np.pi*input) @ B.T
         return np.concatenate([np.sin(x_proj), np.cos(x_proj)], axis=-1)
@@ -44,6 +46,9 @@ class ImageFitting:
             'test_input': input,
             'test_label': output
         }
+        # print the shapes of the dataset
+        for key in dataset:
+            print(key, dataset[key].shape)
         return dataset
     
     def plot(self, method, dataset):

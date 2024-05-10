@@ -1,22 +1,22 @@
 task: 'image_fitting'
 
 data:
-  path: ./data/image_fitting/fox.png
+  path: ./data/image_fitting/owls.png
 
 
 optimizer:
   name: 'Adam'
   lr: 0.001
-  max_iter: 1000
+  max_iter: 10
   history_size: 10
   line_search_fn: "strong_wolfe"
 
 MLP:
-  width: [512,128,3]
+  width: [128,64,3]
   act: 'relu'
   dropout: 0
 
 KAN:
-  width: [64,32,3]
+  width: [128,64,3]
   grid: 5
   k: 3

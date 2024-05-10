@@ -1,5 +1,5 @@
 from . import BaseModel
-
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -28,10 +28,23 @@ class MLPModel(BaseModel):
             )
 
     def train(self, dataset, opt, iter=100):
+        self.model.train()
+        train_loss = []
         for _ in range(iter):
             opt.zero_grad()
             pred = self.model(dataset['train_input'])
             loss = F.mse_loss(pred, dataset['train_label'])
             loss.backward()
-            print("Loss: ", loss.item())
             opt.step()
+            loss_val = np.sqrt(loss.item())
+            print("RMSE Loss: ", loss_val)
+            train_loss.append(loss_val)  # append the current loss value to the list
+        return train_loss
+    
+    def test(self, dataset):
+        self.model.eval()
+        pred = self.model(dataset['test_input'])
+        loss = F.mse_loss(pred, dataset['test_label'])
+        loss_val = np.sqrt(loss.item())
+        print("MLP Test Loss: ", loss_val)
+        return {'loss': loss_val, 'pred': pred}
