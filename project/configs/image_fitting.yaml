@@ -3,7 +3,7 @@ task: 'image_fitting'
 data:
   path: ./data/image_fitting/owls.png
 
-iterations: 1000
+iterations: 100
 
 optimizer:
   name: 'Adam'
@@ -13,11 +13,11 @@ optimizer:
   line_search_fn: "strong_wolfe"
 
 MLP:
-  width: [32,16,3]
+  width: [256,32,16,3]
   act: 'relu'
   dropout: 0
 
 KAN:
-  width: [32,16,3]
+  width: [256,16,3]
   grid: 5
   k: 3

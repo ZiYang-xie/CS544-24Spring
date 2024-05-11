@@ -287,7 +287,7 @@ class KAN(torch.nn.Module):
             for layer in self.layers
         )
     
-    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
+    def fit(self, dataset, optimizer, steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
             small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
 
         pbar = tqdm(range(steps), desc='description', ncols=100)
@@ -298,11 +298,6 @@ class KAN(torch.nn.Module):
             loss_fn = loss_fn_eval = loss_fn
 
         grid_update_freq = int(stop_grid_update_step / grid_update_num)
-
-        if opt == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        elif opt == "LBFGS":
-            optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
 
         results = {}
         results['train_loss'] = []
@@ -347,10 +342,10 @@ class KAN(torch.nn.Module):
             # if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid:
             #     self.update_grid_from_samples(dataset['train_input'][train_id].to(device))
 
-            if opt == "LBFGS":
+            if isinstance(optimizer, LBFGS):
                 optimizer.step(closure)
 
-            if opt == "Adam":
+            if isinstance(optimizer, torch.optim.Adam):
                 pred = self.forward(dataset['train_input'][train_id].to(device))
                 if sglr_avoid == True:
                     id_ = torch.where(torch.isnan(torch.sum(pred, dim=1)) == False)[0]

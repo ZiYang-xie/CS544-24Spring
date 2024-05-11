@@ -6,15 +6,15 @@ import numpy as np
 import torch.nn.functional as F
 
 class ImageFitting:
-    def __init__(self, path, resize=64):
-        self.path = path
-        self.image = imageio.imread(path)[:, :, :3]
+    def __init__(self, config, resize=64):
+        self.path = config['data']['path']
+        self.image = imageio.imread(self.path)[:, :, :3]
         H, W = self.image.shape[:2]
         self.image = cv2.resize(self.image, (int(resize*W/H), resize) if H > W else (resize, int(resize*H/W)))
         # save the image to a file
         imageio.imsave("input.png", self.image)
         self.image = self.image / 255.0
-        
+        self.config = config
         random.seed(42)
 
     def input_mapping(self, input, scale=10.0, mapping_size=16):
@@ -28,7 +28,7 @@ class ImageFitting:
         X, Y = np.meshgrid(x, y)
         grid = np.stack([X, Y], axis=-1)
         input = grid.reshape(-1, 2)
-        input = self.input_mapping(input)
+        input = self.input_mapping(input, mapping_size=self.config['MLP']['width'][0]//2)
         output = self.image.reshape(-1, 3)
 
         input = torch.tensor(input, dtype=torch.float32)
