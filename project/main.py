@@ -19,8 +19,11 @@ class TestBench():
     def train(self):
         print("Training the model")
         mlp_loss = self.mlp.train(self.dataset,
-                       build_optimizer(self.config['optimizer'], self.mlp.model.parameters()))
-        kan_loss = self.kan.train(self.dataset, 'LBFGS')        
+                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
+                        iter=self.config['iterations'])
+        kan_loss = self.kan.train(self.dataset, 
+                        self.config['optimizer']['name'],
+                        iter=self.config['iterations'])        
         # plot the loss
         plt.figure()
         plt.title('Loss')
@@ -36,10 +39,11 @@ class TestBench():
     def test(self):
         print("Testing the model")
         self.task.test(self.mlp, self.dataset)
+        self.task.test(self.kan, self.dataset)
 
     def run(self):
         self.train()
-        # self.test()
+        self.test()
 
 
 if __name__ == "__main__":

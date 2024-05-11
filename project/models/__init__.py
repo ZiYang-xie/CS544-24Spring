@@ -7,6 +7,6 @@ class BaseModel(nn.Module):
 
     def train(self):
         raise NotImplementedError
-    
+
 from .kan import KANModel
 from .mlp import MLPModel

@@ -3,6 +3,7 @@ task: 'image_fitting'
 data:
   path: ./data/image_fitting/owls.png
 
+iterations: 1000
 
 optimizer:
   name: 'Adam'

@@ -1,6 +1,6 @@
 from . import BaseModel
 import numpy as np
-from kan import KAN 
+from models.efficient_kan import KAN
 from torch.nn import functional as F
 from torch.nn import Module as Module
 from typing import List
@@ -14,18 +14,18 @@ class KANModel(BaseModel):
                  k=3,
                  seed=42):
         super(KANModel, self).__init__()
-        self.model = KAN(width=width, grid=grid, k=k, seed=seed)
+        self.model = KAN(layers_hidden=width, grid_size=grid, spline_order=k, seed=seed)
+        self.name = 'KAN'
 
     def vis(self, beta=100, mask=False):
         self.model.plot(beta=beta, mask=mask)
 
     def train(self, dataset, opt, iter=100):
-        #  Module.train(self.model)
-        result = self.model.train(dataset, opt, steps=iter)
+        result = self.model.fit(dataset, opt, steps=iter)
         return result['train_loss']
     
     def test(self, dataset):
-        Module.eval(self.model)
+        self.model.eval()
         pred = self.model(dataset['test_input'])
         loss = F.mse_loss(pred, dataset['test_label'])
         loss_val = np.sqrt(loss.item())

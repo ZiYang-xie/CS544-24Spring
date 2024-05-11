@@ -4,3 +4,6 @@ lib/
 **.out
 
 pykan/
+**/*.sh
+**/*.png
+/efficient-kan/

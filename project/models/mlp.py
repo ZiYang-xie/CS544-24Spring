@@ -26,6 +26,7 @@ class MLPModel(BaseModel):
                 ) 
                 for i in range(len(width)-1)]
             )
+        self.name = 'MLP'
 
     def train(self, dataset, opt, iter=100):
         self.model.train()
@@ -37,7 +38,7 @@ class MLPModel(BaseModel):
             loss.backward()
             opt.step()
             loss_val = np.sqrt(loss.item())
-            print("RMSE Loss: ", loss_val)
+            print("MLP:RMSE Loss: ", loss_val)
             train_loss.append(loss_val)  # append the current loss value to the list
         return train_loss
     

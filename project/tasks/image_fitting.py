@@ -56,14 +56,16 @@ class ImageFitting:
         pred = pred.clamp(0, 1)
         pred = pred.detach().cpu().numpy().reshape(self.image.shape)
         pred = (pred * 255).astype(np.uint8)
-        imageio.imsave("output.png", pred)
+        imageio.imsave(f"{method}_output.png", pred)
     
-    def test(self, method, dataset):
-        pred = method.model(dataset['test_input'])
-        loss = F.mse_loss(pred, dataset['test_label'])
-        print("Test Loss: ", loss.item())
-
-        self.plot(method, dataset)
+    def test(self, method, dataset, plot=True):
+        test_dict = method.test(dataset)
+        pred = test_dict['pred']
+        pred = pred.clamp(0, 1)
+        pred = pred.detach().cpu().numpy().reshape(self.image.shape)
+        pred = (pred * 255).astype(np.uint8)
+        imageio.imsave(f"{method.name}_output.png", pred)
+        # self.plot(method, dataset)
 
 
     
