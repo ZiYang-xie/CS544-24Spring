@@ -18,9 +18,9 @@ class TestBench():
 
     def train(self):
         print("Training the model")
-        kan_loss = self.kan.train(self.dataset, 'LBFGS')
         mlp_loss = self.mlp.train(self.dataset,
                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()))
+        kan_loss = self.kan.train(self.dataset, 'LBFGS')        
         # plot the loss
         plt.figure()
         plt.title('Loss')

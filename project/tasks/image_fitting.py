@@ -17,7 +17,7 @@ class ImageFitting:
         
         random.seed(42)
 
-    def input_mapping(self, input, scale=10.0, mapping_size=64):
+    def input_mapping(self, input, scale=10.0, mapping_size=16):
         B = np.random.normal(0, 1, (mapping_size, input.shape[1])) * scale
         x_proj = (2.*np.pi*input) @ B.T
         return np.concatenate([np.sin(x_proj), np.cos(x_proj)], axis=-1)

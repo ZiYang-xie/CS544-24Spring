@@ -12,11 +12,11 @@ optimizer:
   line_search_fn: "strong_wolfe"
 
 MLP:
-  width: [128,64,3]
+  width: [32,16,3]
   act: 'relu'
   dropout: 0
 
 KAN:
-  width: [128,64,3]
+  width: [32,16,3]
   grid: 5
   k: 3
