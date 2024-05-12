@@ -287,13 +287,13 @@ class KAN(torch.nn.Module):
             for layer in self.layers
         )
     
-    def fit(self, dataset, optimizer, steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
+    def fit(self, dataset, optimizer, steps=100, log=1, lamb=0.001, lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
             small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
 
         pbar = tqdm(range(steps), desc='description', ncols=100)
 
         if loss_fn == None:
-            loss_fn = loss_fn_eval = lambda x, y: torch.mean((x - y) ** 2)
+            loss_fn = loss_fn_eval = F.mse_loss
         else:
             loss_fn = loss_fn_eval = loss_fn
 
@@ -361,14 +361,14 @@ class KAN(torch.nn.Module):
             test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
 
             if _ % log == 0:
-                pbar.set_description("train loss: %.2e | test loss: %.2e | reg: %.2e " % (torch.sqrt(train_loss).cpu().detach().numpy(), torch.sqrt(test_loss).cpu().detach().numpy(), reg_.cpu().detach().numpy()))
+                pbar.set_description("train loss: %.2e | test loss: %.2e | reg: %.2e " % (train_loss.cpu().detach().numpy(), test_loss.cpu().detach().numpy(), reg_.cpu().detach().numpy()))
 
             if metrics != None:
                 for i in range(len(metrics)):
                     results[metrics[i].__name__].append(metrics[i]().item())
 
-            results['train_loss'].append(torch.sqrt(train_loss).cpu().detach().numpy())
-            results['test_loss'].append(torch.sqrt(test_loss).cpu().detach().numpy())
+            results['train_loss'].append(train_loss.cpu().detach().numpy())
+            results['test_loss'].append(test_loss.cpu().detach().numpy())
             results['reg'].append(reg_.cpu().detach().numpy())
 
             if save_fig and _ % save_fig_freq == 0:

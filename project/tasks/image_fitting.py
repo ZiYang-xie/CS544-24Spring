@@ -6,7 +6,7 @@ import numpy as np
 import torch.nn.functional as F
 
 class ImageFitting:
-    def __init__(self, config, resize=64):
+    def __init__(self, config, resize=96):
         self.path = config['data']['path']
         self.image = imageio.imread(self.path)[:, :, :3]
         H, W = self.image.shape[:2]
@@ -22,13 +22,13 @@ class ImageFitting:
         x_proj = (2.*np.pi*input) @ B.T
         return np.concatenate([np.sin(x_proj), np.cos(x_proj)], axis=-1)
 
-    def create_dataset(self):
+    def create_dataset(self, model_name):
         x = np.linspace(0, 1, self.image.shape[1])
         y = np.linspace(0, 1, self.image.shape[0])
         X, Y = np.meshgrid(x, y)
         grid = np.stack([X, Y], axis=-1)
         input = grid.reshape(-1, 2)
-        input = self.input_mapping(input, mapping_size=self.config['MLP']['width'][0]//2)
+        input = self.input_mapping(input, mapping_size=self.config[model_name]['width'][0]//2)
         output = self.image.reshape(-1, 3)
 
         input = torch.tensor(input, dtype=torch.float32)

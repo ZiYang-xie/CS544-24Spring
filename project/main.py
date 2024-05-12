@@ -4,29 +4,33 @@ from utils import read_config
 from tasks import TASKS
 from optimizers import build_optimizer
 from matplotlib import pyplot as plt
-
+import torch
 class TestBench():
     def __init__(self, args):
         self.config = read_config(args.config)
         
         self.task = TASKS[self.config['task']](self.config)
-        self.dataset = self.task.create_dataset()
 
         self.kan = KANModel(**self.config['KAN'])
         self.mlp = MLPModel(**self.config['MLP'])
+        self.dataset = {self.kan.name: self.task.create_dataset(self.kan.name),
+                        self.mlp.name: self.task.create_dataset(self.mlp.name)}
 
     def train(self):
         print("Training the model")
         print(f"Before:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         print(f"MLP params: {sum(p.numel() for p in self.mlp.model.parameters())}")
-        kan_loss = self.kan.train(self.dataset, 
+        
+        kan_loss = self.kan.train(self.dataset[self.kan.name], 
                         build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
                         iter=self.config['iterations'])
-        print(f"After:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         
-        mlp_loss = self.mlp.train(self.dataset,
+        mlp_loss = self.mlp.train(self.dataset[self.mlp.name],
                         build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
                         iter=self.config['iterations'])
+        
+        
+        print(f"After:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         # plot the loss
         plt.figure()
         plt.title('Loss')
@@ -42,8 +46,8 @@ class TestBench():
 
     def test(self):
         print("Testing the model")
-        self.task.test(self.mlp, self.dataset)
-        self.task.test(self.kan, self.dataset)
+        self.task.test(self.mlp, self.dataset[self.mlp.name])
+        self.task.test(self.kan, self.dataset[self.kan.name])
 
     def run(self):
         self.train()

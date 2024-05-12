@@ -16,19 +16,28 @@ class KANModel(BaseModel):
         super(KANModel, self).__init__()
         self.model = KAN(layers_hidden=width, grid_size=grid, spline_order=k, seed=seed)
         self.name = 'KAN'
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.model.to(self.device)
 
     def vis(self, beta=100, mask=False):
         self.model.plot(beta=beta, mask=mask)
 
-    def train(self, dataset, opt, iter=100):
-        result = self.model.fit(dataset, opt, steps=iter)
+    def train(self, dataset, opt, iter=100, loss_fn=None):
+        result = self.model.fit(dataset, opt, steps=iter, \
+                device=self.device, loss_fn=loss_fn)
         return result['train_loss']
     
-    def test(self, dataset):
+    def test(self, dataset, loss_fn=None):
         self.model.eval()
+        dataset['test_input'] = dataset['test_input'].to(self.device)
+        dataset['test_label'] = dataset['test_label'].to(self.device)
+        if loss_fn is None:
+            loss_fn = F.mse_loss
+        else:
+            loss_fn = loss_fn
         pred = self.model(dataset['test_input'])
-        loss = F.mse_loss(pred, dataset['test_label'])
-        loss_val = np.sqrt(loss.item())
+        loss = loss_fn(pred, dataset['test_label'])
+        loss_val = loss.item()
         print("KAN Test Loss: ", loss_val)
         return {'loss': loss_val, 'pred': pred}
 
