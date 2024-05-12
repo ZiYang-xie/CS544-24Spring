@@ -7,6 +7,7 @@ import os
 from kan.LBFGS import LBFGS
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from garage.torch.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer
 
 class KANLinear(torch.nn.Module):
     def __init__(
@@ -356,6 +357,14 @@ class KAN(torch.nn.Module):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+            
+            if isinstance(optimizer, ConjugateGradientOptimizer):
+                pred = self.forward(dataset['train_input'][train_id].to(device))
+                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+                loss = train_loss
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step(f_loss=lambda: train_loss, f_constraint=lambda: 0)
 
             test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
 

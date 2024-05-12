@@ -7,7 +7,7 @@ iterations: 2 # 50
 batch_size: 128
 
 optimizer:
-  name: 'LBFGS'
+  name: 'cg'
   lr: 0.001
   max_iter: 10
   history_size: 10
