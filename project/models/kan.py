@@ -12,19 +12,24 @@ class KANModel(BaseModel):
                  width: List[int],
                  grid=5,
                  k=3,
+                 loss_fn=F.mse_loss,
                  seed=42):
         super(KANModel, self).__init__()
         self.model = KAN(layers_hidden=width, grid_size=grid, spline_order=k, seed=seed)
         self.name = 'KAN'
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
+        self.loss_fn = {
+            'MSE': F.mse_loss,
+            'CE': F.cross_entropy
+        }[loss_fn]
 
     def vis(self, beta=100, mask=False):
         self.model.plot(beta=beta, mask=mask)
 
-    def train(self, dataset, opt, iter=100, loss_fn=None):
+    def train(self, dataset, opt, iter=100):
         result = self.model.fit(dataset, opt, steps=iter, \
-                device=self.device, loss_fn=loss_fn)
+                device=self.device, loss_fn=self.loss_fn)
         return result['train_loss']
     
     def test(self, dataset, loss_fn=None):

@@ -1,0 +1,28 @@
+task: 'mnist'
+
+data:
+  path: ./data
+
+iterations: 50
+
+optimizer:
+  name: 'Adam'
+  lr: 0.001
+  max_iter: 10
+  history_size: 10
+  line_search_fn: "strong_wolfe"
+
+
+
+MLP:
+  width: [784,1024,10]
+  act: 'relu'
+  dropout: 0
+  loss_fn: 'CE'
+
+KAN:
+  width: [784,64,10]
+  grid: 5
+  k: 3
+  loss_fn: 'CE'
+  

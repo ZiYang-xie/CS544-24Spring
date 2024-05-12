@@ -11,6 +11,7 @@ class MLPModel(BaseModel):
     def __init__(self, 
                  width: List[int],
                  act='relu',
+                 loss_fn=F.mse_loss,
                  dropout=0.0,
                  seed=42):
         super(MLPModel, self).__init__()
@@ -20,6 +21,11 @@ class MLPModel(BaseModel):
             'sigmoid': nn.Sigmoid
         }[act]
 
+        self.loss_fn = {
+            'MSE': F.mse_loss,
+            'CE': F.cross_entropy
+        }[loss_fn]
+
         self.model = nn.Sequential(*[
                 nn.Sequential(
                     nn.Linear(width[i], width[i+1]), 
@@ -28,6 +34,7 @@ class MLPModel(BaseModel):
                 ) 
                 for i in range(len(width)-1)]
             )
+        self.loss_fn = loss_fn
         self.name = 'MLP'
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)

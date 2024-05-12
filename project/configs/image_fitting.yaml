@@ -12,12 +12,15 @@ optimizer:
   history_size: 10
   line_search_fn: "strong_wolfe"
 
+
 MLP:
   width: [256,32,3]
   act: 'relu'
   dropout: 0
+  loss_fn: 'MSE'
 
 KAN:
   width: [64,16,3]
   grid: 5
   k: 3
+  loss_fn: 'MSE'
