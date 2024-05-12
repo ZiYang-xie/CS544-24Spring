@@ -6,7 +6,7 @@ data:
 iterations: 100
 
 optimizer:
-  name: 'LBFGS'
+  name: 'CG'
   lr: 0.001
   max_iter: 10
   history_size: 10
@@ -20,7 +20,7 @@ MLP:
   loss_fn: 'MSE'
 
 KAN:
-  width: [64,16,3]
+  width: [256,16,3]
   grid: 5
   k: 3
   loss_fn: 'MSE'

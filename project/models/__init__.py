@@ -7,6 +7,9 @@ class BaseModel(nn.Module):
 
     def train(self):
         raise NotImplementedError
-
+    
+    def additional_fields(self):
+        raise NotImplementedError
+        return None
 from .kan import KANModel
 from .mlp import MLPModel

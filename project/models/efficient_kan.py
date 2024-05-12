@@ -7,7 +7,7 @@ import os
 from kan.LBFGS import LBFGS
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from garage.torch.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer
+# from garage.torch.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer
 
 class KANLinear(torch.nn.Module):
     def __init__(

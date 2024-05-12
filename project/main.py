@@ -13,7 +13,7 @@ class TestBench():
         
         self.task = TASKS[self.config['task']](self.config)
 
-        self.kan = KANModel(**self.config['KAN'])
+        # self.kan = KANModel(**self.config['KAN'])
         self.mlp = MLPModel(**self.config['MLP'])
         self.dataset = {self.kan.name: self.task.create_dataset(self.kan.name),
                         self.mlp.name: self.task.create_dataset(self.mlp.name)}
@@ -23,13 +23,15 @@ class TestBench():
         print(f"Before:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         print(f"MLP params: {sum(p.numel() for p in self.mlp.model.parameters())}")
         
-        kan_loss = self.kan.train(self.dataset[self.kan.name], 
-                        build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
-                        iter=self.config['iterations'],
-                        batch=self.config['batch_size'])
-        
+        # kan_optimizer = build_optimizer(self.config['optimizer'], self.kan.model.parameters())
+        # kan_loss = self.kan.train(self.dataset[self.kan.name], 
+        #                 kan_optimizer,
+        #                 iter=self.config['iterations'],
+        #                 batch=self.config['batch_size'])
+        mlp_fns = self.mlp.additional_fields()
+        mlp_optimizer = build_optimizer(self.config['optimizer'], self.mlp.model.parameters(), **mlp_fns)
         mlp_loss = self.mlp.train(self.dataset[self.mlp.name],
-                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
+                        mlp_optimizer,
                         iter=self.config['iterations'],
                         batch=self.config['batch_size'])
         
@@ -42,7 +44,7 @@ class TestBench():
         plt.ylabel('Loss')
         plt.ylim(0, 1)
         # plot both losses on the same graph with labels
-        plt.plot(kan_loss, label='KAN')
+        # plt.plot(kan_loss, label='KAN')
         plt.plot(mlp_loss, label='MLP')
         plt.legend()
         # save the plot to a file

@@ -43,5 +43,6 @@ class KANModel(BaseModel):
         print("KAN Test Loss: ", loss_val)
         return {'loss': loss_val, 'pred': pred}
 
-
+    def additional_fields(self):
+        return None
     
