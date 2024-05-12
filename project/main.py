@@ -4,6 +4,7 @@ from utils import read_config
 from tasks import TASKS
 from optimizers import build_optimizer
 from matplotlib import pyplot as plt
+from torch.nn import functional as F
 
 class TestBench():
     def __init__(self, args):

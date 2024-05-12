@@ -1,9 +1,9 @@
-task: 'image_fitting'
+task: 'mnist'
 
 data:
-  path: ./data/image_fitting/owls.png
+  path: ./data
 
-iterations: 100
+iterations: 50
 
 optimizer:
   name: 'Adam'
@@ -13,14 +13,16 @@ optimizer:
   line_search_fn: "strong_wolfe"
 
 
+
 MLP:
-  width: [256,16,3]
+  width: [784,1024,10]
   act: 'relu'
   dropout: 0
-  loss_fn: 'MSE'
+  loss_fn: 'CE'
 
 KAN:
-  width: [256,16,3]
+  width: [784,64,10]
   grid: 5
   k: 3
-  loss_fn: 'MSE'
+  loss_fn: 'CE'
+  

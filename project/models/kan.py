@@ -12,22 +12,27 @@ class KANModel(BaseModel):
                  width: List[int],
                  grid=5,
                  k=3,
+                 loss_fn=F.mse_loss,
                  seed=42):
         super(KANModel, self).__init__()
         self.model = KAN(layers_hidden=width, grid_size=grid, spline_order=k, seed=seed)
         self.name = 'KAN'
+        self.loss_fn = {
+            'MSE': F.mse_loss,
+            'CE': F.cross_entropy
+        }[loss_fn]
 
     def vis(self, beta=100, mask=False):
         self.model.plot(beta=beta, mask=mask)
 
     def train(self, dataset, opt, iter=100):
-        result = self.model.fit(dataset, opt, steps=iter)
+        result = self.model.fit(dataset, opt, steps=iter, loss_fn=self.loss_fn)
         return result['train_loss']
     
     def test(self, dataset):
         self.model.eval()
         pred = self.model(dataset['test_input'])
-        loss = F.mse_loss(pred, dataset['test_label'])
+        loss = self.loss_fn(pred, dataset['test_label'])
         loss_val = np.sqrt(loss.item())
         print("KAN Test Loss: ", loss_val)
         return {'loss': loss_val, 'pred': pred}
