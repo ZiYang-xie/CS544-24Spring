@@ -27,21 +27,18 @@ class KANModel(BaseModel):
     def vis(self, beta=100, mask=False):
         self.model.plot(beta=beta, mask=mask)
 
-    def train(self, dataset, opt, iter=100):
+    def train(self, dataset, opt, iter=100, batch=-1):
         result = self.model.fit(dataset, opt, steps=iter, \
-                device=self.device, loss_fn=self.loss_fn)
+                device=self.device, loss_fn=self.loss_fn, batch=batch)
         return result['train_loss']
     
-    def test(self, dataset, loss_fn=None):
+    def test(self, dataset):
         self.model.eval()
         dataset['test_input'] = dataset['test_input'].to(self.device)
         dataset['test_label'] = dataset['test_label'].to(self.device)
-        if loss_fn is None:
-            loss_fn = F.mse_loss
-        else:
-            loss_fn = loss_fn
+
         pred = self.model(dataset['test_input'])
-        loss = loss_fn(pred, dataset['test_label'])
+        loss = self.loss_fn(pred, dataset['test_label'])
         loss_val = loss.item()
         print("KAN Test Loss: ", loss_val)
         return {'loss': loss_val, 'pred': pred}

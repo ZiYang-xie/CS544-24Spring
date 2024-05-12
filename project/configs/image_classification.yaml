@@ -1,18 +1,17 @@
-task: 'mnist'
+task: 'image_classification'
 
 data:
   path: ./data
 
-iterations: 50
+iterations: 2 # 50
+batch_size: 128
 
 optimizer:
-  name: 'Adam'
+  name: 'LBFGS'
   lr: 0.001
   max_iter: 10
   history_size: 10
   line_search_fn: "strong_wolfe"
-
-
 
 MLP:
   width: [784,1024,10]

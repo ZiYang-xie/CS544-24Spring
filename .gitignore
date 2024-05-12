@@ -7,3 +7,4 @@ pykan/
 **/*.sh
 **/*.png
 /efficient-kan/
+**/data/MNIST/

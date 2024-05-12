@@ -25,11 +25,13 @@ class TestBench():
         
         kan_loss = self.kan.train(self.dataset[self.kan.name], 
                         build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
-                        iter=self.config['iterations'])
+                        iter=self.config['iterations'],
+                        batch=self.config['batch_size'])
         
         mlp_loss = self.mlp.train(self.dataset[self.mlp.name],
                         build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
-                        iter=self.config['iterations'])
+                        iter=self.config['iterations'],
+                        batch=self.config['batch_size'])
         
         
         print(f"After:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
@@ -44,7 +46,7 @@ class TestBench():
         plt.plot(mlp_loss, label='MLP')
         plt.legend()
         # save the plot to a file
-        plt.savefig("loss.png")
+        plt.savefig(f"figs/{self.config['task']}/loss.png")
 
     def test(self):
         print("Testing the model")

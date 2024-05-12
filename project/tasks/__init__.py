@@ -1,6 +1,6 @@
 from .image_fitting import ImageFitting
-from .mnist import MNIST
+from .image_classification import ImageClassification
 TASKS = {
     'image_fitting': ImageFitting,
-    'mnist': MNIST
+    'image_classification': ImageClassification
 }
