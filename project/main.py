@@ -43,7 +43,7 @@ class TestBench():
                 plt.title('Test Loss')
             plt.xlabel('Iteration')
             plt.ylabel('Loss')
-            plt.ylim(0, 0.2)
+            plt.ylim(0, 0.3)
             # plot both losses on the same graph with labels
             plt.plot(kan_loss[i], label='KAN')
             plt.plot(mlp_loss[i], label='MLP')

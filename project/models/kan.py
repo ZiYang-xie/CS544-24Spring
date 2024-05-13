@@ -30,7 +30,7 @@ class KANModel(BaseModel):
     def train(self, dataset, opt, iter=100, batch=-1):
         result = self.model.fit(dataset, opt, steps=iter, \
                 device=self.device, loss_fn=self.loss_fn, batch=batch)
-        return result['train_loss']
+        return result['train_loss'], result['test_loss']
     
     def test(self, dataset):
         self.model.eval()

@@ -3,7 +3,7 @@ task: 'image_classification'
 data:
   path: ./data
 
-iterations: 10
+iterations: 5
 batch_size: 1280
 
 optimizer:

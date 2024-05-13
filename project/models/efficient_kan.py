@@ -372,7 +372,6 @@ class KAN(torch.nn.Module):
                 optimizer.step(f_loss=f_loss)
             
             self.eval()
-            
             test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
 
             if _ % log == 0:
