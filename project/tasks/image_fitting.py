@@ -56,7 +56,10 @@ class ImageFitting:
         pred = pred.clamp(0, 1)
         pred = pred.detach().cpu().numpy().reshape(self.image.shape)
         pred = (pred * 255).astype(np.uint8)
-        imageio.imsave(f"{method}_output.png", pred)
+        import os
+        if not os.path.exists(f"figs/{self.config['task']}"):
+            os.makedirs(f"figs/{self.config['task']}")
+        imageio.imsave(f"figs/{self.config['task']}/{method}_output.png", pred)
     
     def test(self, method, dataset, plot=True):
         test_dict = method.test(dataset)
@@ -64,7 +67,11 @@ class ImageFitting:
         pred = pred.clamp(0, 1)
         pred = pred.detach().cpu().numpy().reshape(self.image.shape)
         pred = (pred * 255).astype(np.uint8)
-        imageio.imsave(f"{method.name}_output.png", pred)
+        import os
+        if not os.path.exists(f"figs/{self.config['task']}"):
+            os.makedirs(f"figs/{self.config['task']}")
+        imageio.imsave(f"figs/{self.config['task']}/{method.name}_output.png", pred)
+
         # self.plot(method, dataset)
 
 

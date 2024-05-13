@@ -23,37 +23,40 @@ class TestBench():
         print(f"Before:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         print(f"MLP params: {sum(p.numel() for p in self.mlp.model.parameters())}")
         
-        mlp_loss  = self.mlp.train(self.dataset[self.mlp.name],
-                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
-                        iter=self.config['iterations'],
-                        batch=self.config['batch_size'])
-        
-        kan_loss = self.kan.train(self.dataset[self.kan.name], 
-                        build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
-                        iter=self.config['iterations'],
-                        batch=self.config['batch_size'])
+        kan_losses = {}
+        time_taken = {}
+        import time
+        for optimizer_name in ['SGD', 'Adam', 'LBFGS']:
+            self.kan = KANModel(**self.config['KAN'])
+            start = time.time()
+            kan_loss = self.kan.train(self.dataset[self.kan.name], 
+                            build_optimizer(self.config['optimizer'][optimizer_name], self.kan.model.parameters()),
+                            iter=self.config['iterations'],
+                            batch=self.config['batch_size'])
+            end = time.time()
+            kan_losses[optimizer_name] = kan_loss
+            time_taken[optimizer_name] = end - start
         
         print(f"After:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         # plot the loss
-        for i in range(len(mlp_loss)):
-            plt.figure()
-            if i == 0:
-                plt.title('Train Loss')
-            else:
-                plt.title('Test Loss')
-            plt.xlabel('Iteration')
-            plt.ylabel('Loss')
-            plt.ylim(0, 0.2)
-            # plot both losses on the same graph with labels
-            plt.plot(kan_loss[i], label='KAN')
-            plt.plot(mlp_loss[i], label='MLP')
-            plt.legend()
-            # save the plot to a file
-            if i == 0:
-                plt.savefig(f"figs/{self.config['task']}/train_loss.png")
-            else:
-                plt.savefig(f"figs/{self.config['task']}/test_loss.png")
-            plt.cla()
+        plt.figure()
+        plt.title('Loss')
+        plt.xlabel('Iteration')
+        plt.ylabel('Loss')
+        # plt.ylim(0, min(2.4, max(kan_loss)))
+        # plot both losses on the same graph with labels
+        for optimizer_name in ['SGD', 'Adam', 'LBFGS']:
+            plt.plot(kan_losses[optimizer_name], label=optimizer_name)
+        plt.legend()
+        # save the plot to a file
+        plt.savefig(f"figs/{self.config['task']}/loss.png")
+        plt.cla()
+        # plot the time taken as a bar chart
+        plt.bar(time_taken.keys(), time_taken.values())
+        plt.title('Time for different optimizers')
+        plt.xlabel('Optimizer')
+        plt.ylabel('Time taken in seconds')
+        plt.savefig(f"figs/{self.config['task']}/time.png")
 
     def test(self):
         print("Testing the model")

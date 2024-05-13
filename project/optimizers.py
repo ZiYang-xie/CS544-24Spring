@@ -17,6 +17,13 @@ def build_optimizer(config, param):
                      line_search_fn=config['line_search_fn'],
                      tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32
                     )
+    elif config['name'] == 'SGD':
+        return torch.optim.SGD(param, \
+                        lr=config['lr'], \
+                        momentum=config['momentum'], \
+                        weight_decay=config['weight_decay'], \
+                        nesterov=config['nesterov'])
+    
     elif config['name'] == 'cg':
         return CGOptimizer(param, 
                         max_constraint_value=np.inf,

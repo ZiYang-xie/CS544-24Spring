@@ -1,0 +1,43 @@
+task: 'optimizer_choose'
+
+data:
+  path: ./data/image_fitting/fox.png
+
+iterations: 100
+batch_size: -1
+
+optimizer:
+  LBFGS:
+    name: 'LBFGS'
+    lr: 0.001
+    max_iter: 10
+    history_size: 10
+    line_search_fn: "strong_wolfe"
+  
+  Adam:
+    name: 'Adam'
+    lr: 0.001
+    betas: [0.9, 0.999]
+    eps: 1e-8
+    weight_decay: 0
+    amsgrad: False
+  
+  SGD:
+    name: 'SGD'
+    lr: 0.001
+    momentum: 0.99
+    weight_decay: 0.000001
+    nesterov: True
+
+
+MLP:
+  width: [256,32,3]
+  act: 'relu'
+  dropout: 0
+  loss_fn: 'MSE'
+
+KAN:
+  width: [64,16,3]
+  grid: 5
+  k: 3
+  loss_fn: 'MSE'

@@ -1,9 +1,11 @@
-task: 'image_fitting'
+task: 'continue_fitting'
 
 data:
-  path: ./data/image_fitting/fox.png
+  path1: ./data/image_fitting/fox.png
+  path2: ./data/image_fitting/squirral.png
 
 iterations: 100
+batch_size: -1
 
 optimizer:
   name: 'LBFGS'

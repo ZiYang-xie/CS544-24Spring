@@ -288,7 +288,7 @@ class KAN(torch.nn.Module):
             for layer in self.layers
         )
     
-    def fit(self, dataset, optimizer, steps=100, log=1, lamb=0.001, lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
+    def fit(self, dataset, optimizer, steps=100, log=1, lamb=0.0, lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
             small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
 
         if loss_fn == None:
@@ -345,7 +345,7 @@ class KAN(torch.nn.Module):
             if isinstance(optimizer, LBFGS):
                 optimizer.step(closure)
 
-            if isinstance(optimizer, torch.optim.Adam):
+            if isinstance(optimizer, torch.optim.Adam) or isinstance(optimizer, torch.optim.SGD):
                 pred = self.forward(dataset['train_input'][train_id].to(device))
                 if sglr_avoid == True:
                     id_ = torch.where(torch.isnan(torch.sum(pred, dim=1)) == False)[0]

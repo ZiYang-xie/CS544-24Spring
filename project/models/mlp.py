@@ -42,6 +42,7 @@ class MLPModel(BaseModel):
         self.model.to(self.device)
 
     def train(self, dataset, opt, iter=100, batch=-1):
+        test_loss_list = []
         train_loss_list = []
         dataset['train_input'] = dataset['train_input'].to(self.device)
         dataset['train_label'] = dataset['train_label'].to(self.device)
@@ -95,9 +96,9 @@ class MLPModel(BaseModel):
             test_loss = self.loss_fn(pred, dataset['test_label'][test_id])
             test_loss_val = test_loss.item()
             pbar.set_description("MLP: train loss: %.2e | test loss: %.2e " % (train_loss.item(), test_loss_val,))
-            
-            train_loss_list.append(train_loss.item())  # append the current loss value to the list
-        return train_loss_list
+            train_loss_list.append(train_loss.item())
+            test_loss_list.append(test_loss_val)  # append the current loss value to the list
+        return train_loss_list, test_loss_list
     
     def test(self, dataset):
         self.model.eval()

@@ -3,18 +3,18 @@ task: 'image_classification'
 data:
   path: ./data
 
-iterations: 2 # 50
-batch_size: 128
+iterations: 10
+batch_size: 1280
 
 optimizer:
-  name: 'cg'
-  lr: 0.1
+  name: 'LBFGS'
+  lr: 0.01
   max_iter: 10
   history_size: 10
   line_search_fn: "strong_wolfe"
 
 MLP:
-  width: [784,1024,10]
+  width: [784,512,10]
   act: 'relu'
   dropout: 0
   loss_fn: 'CE'

@@ -3,7 +3,8 @@ task: 'image_fitting'
 data:
   path: ./data/image_fitting/fox.png
 
-iterations: 100
+iterations: 50
+batch_size: -1
 
 optimizer:
   name: 'LBFGS'
