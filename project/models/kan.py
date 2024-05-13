@@ -42,6 +42,3 @@ class KANModel(BaseModel):
         loss_val = loss.item()
         print("KAN Test Loss: ", loss_val)
         return {'loss': loss_val, 'pred': pred}
-
-
-    

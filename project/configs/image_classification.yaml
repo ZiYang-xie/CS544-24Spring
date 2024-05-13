@@ -8,7 +8,7 @@ batch_size: 128
 
 optimizer:
   name: 'cg'
-  lr: 0.001
+  lr: 0.1
   max_iter: 10
   history_size: 10
   line_search_fn: "strong_wolfe"

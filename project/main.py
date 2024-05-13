@@ -23,13 +23,13 @@ class TestBench():
         print(f"Before:KAN params: {sum(p.numel() for p in self.kan.model.parameters())}")
         print(f"MLP params: {sum(p.numel() for p in self.mlp.model.parameters())}")
         
-        kan_loss = self.kan.train(self.dataset[self.kan.name], 
-                        build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
+        mlp_loss = self.mlp.train(self.dataset[self.mlp.name],
+                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
                         iter=self.config['iterations'],
                         batch=self.config['batch_size'])
         
-        mlp_loss = self.mlp.train(self.dataset[self.mlp.name],
-                        build_optimizer(self.config['optimizer'], self.mlp.model.parameters()),
+        kan_loss = self.kan.train(self.dataset[self.kan.name], 
+                        build_optimizer(self.config['optimizer'], self.kan.model.parameters()),
                         iter=self.config['iterations'],
                         batch=self.config['batch_size'])
         

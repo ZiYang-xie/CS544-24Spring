@@ -7,7 +7,7 @@ import os
 from kan.LBFGS import LBFGS
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from garage.torch.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer
+from optimizers import CGOptimizer
 
 class KANLinear(torch.nn.Module):
     def __init__(
@@ -341,7 +341,7 @@ class KAN(torch.nn.Module):
 
             # if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid:
             #     self.update_grid_from_samples(dataset['train_input'][train_id].to(device))
-
+            self.train()
             if isinstance(optimizer, LBFGS):
                 optimizer.step(closure)
 
@@ -358,14 +358,21 @@ class KAN(torch.nn.Module):
                 loss.backward()
                 optimizer.step()
             
-            if isinstance(optimizer, ConjugateGradientOptimizer):
-                pred = self.forward(dataset['train_input'][train_id].to(device))
-                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-                loss = train_loss
+            if isinstance(optimizer, CGOptimizer):
                 optimizer.zero_grad()
-                loss.backward()
-                optimizer.step(f_loss=lambda: train_loss, f_constraint=lambda: 0)
-
+                pred = self.forward(dataset['train_input'][train_id])
+                train_loss = loss_fn(pred, dataset['train_label'][train_id])
+                train_loss.backward()
+                reg_ = torch.tensor([0.0], dtype=torch.float32).to(device)
+                def f_loss():
+                    pred = self.forward(dataset['train_input'][train_id])
+                    train_loss = loss_fn(pred, dataset['train_label'][train_id])
+                    # train_loss.backward()
+                    return train_loss
+                optimizer.step(f_loss=f_loss)
+            
+            self.eval()
+            
             test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
 
             if _ % log == 0:

@@ -6,6 +6,8 @@ from torch.nn import functional as F
 from typing import List
 from tqdm import tqdm
 from kan.LBFGS import LBFGS
+from optimizers import CGOptimizer
+from functools import partial
 
 class MLPModel(BaseModel):
     def __init__(self, 
@@ -40,7 +42,6 @@ class MLPModel(BaseModel):
         self.model.to(self.device)
 
     def train(self, dataset, opt, iter=100, batch=-1):
-        self.model.train()
         train_loss_list = []
         dataset['train_input'] = dataset['train_input'].to(self.device)
         dataset['train_label'] = dataset['train_label'].to(self.device)
@@ -69,16 +70,25 @@ class MLPModel(BaseModel):
         for _ in pbar:
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
-
+            self.model.train()
             if isinstance(opt, LBFGS):
                 opt.step(closure)
             elif isinstance(opt, torch.optim.Adam):
                 opt.zero_grad()
-                self.model.train()
                 pred = self.model(dataset['train_input'][train_id])
                 train_loss = self.loss_fn(pred, dataset['train_label'][train_id])
                 train_loss.backward()
                 opt.step()
+            elif isinstance(opt, CGOptimizer):
+                opt.zero_grad()
+                pred = self.model(dataset['train_input'][train_id])
+                train_loss = self.loss_fn(pred, dataset['train_label'][train_id])
+                train_loss.backward()             
+                def f_loss():
+                    pred = self.model(dataset['train_input'][train_id])
+                    train_loss = self.loss_fn(pred, dataset['train_label'][train_id])
+                    return train_loss
+                opt.step(f_loss=f_loss)
             
             self.model.eval()
             pred = self.model(dataset['test_input'][test_id])
